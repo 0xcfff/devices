@@ -5,6 +5,7 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <pump_messages.h>
 
 #define PIN_RF_CE D2
 #define PIN_RF_CSN D8
@@ -96,9 +97,10 @@ void onEndOTA(){
   ESP.restart();
 }
 
-///////////// TODO
+///////////// TODO ////////////////////
 // Implement OTA based on ArduinoOTA sample
 // When OTA will work, prolong WiFi channel being enabled by updating wifiLastUsedAt
+// Implement Security on top of nrf24l01 (sign messages, keys exchange (preshared or something else), etc)
 
 
 void setup() {
@@ -227,6 +229,7 @@ void loop() {
   } else {
     Serial.println("No data received...");
   }
+
 
   delay(200);
 }
