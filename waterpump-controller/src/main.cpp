@@ -57,6 +57,49 @@ ICACHE_RAM_ATTR void controlButtonChanged() {
   }
 }
 
+void onStartOTA(){
+  wifiLastUsedAt = millis();
+}
+
+void onErrorOTA(ota_error_t error){
+  const char * errorDescr = NULL;
+  switch (error)
+  {
+  case OTA_AUTH_ERROR:
+    errorDescr = "auth";
+    break;
+  case OTA_BEGIN_ERROR:
+    errorDescr = "begin";
+    break;
+  case OTA_END_ERROR:
+    errorDescr = "end";
+    break;
+  case OTA_RECEIVE_ERROR:
+    errorDescr = "receive";
+    break;
+  default:
+    errorDescr = "unknown";
+    break;
+  }
+  Serial.printf("OTA error: %s", errorDescr);
+}
+
+void onProgressOTA(unsigned int progress, unsigned int total){
+  int progressPercent = (int)(progress * (100 / (float)total));
+  Serial.printf("OTA progress: %i%%\n", progressPercent);
+  wifiLastUsedAt = millis();
+}
+
+void onEndOTA(){
+  wifiLastUsedAt = millis();
+  Serial.printf("OTA completed, restarting...");
+  ESP.restart();
+}
+
+///////////// TODO
+// Implement OTA based on ArduinoOTA sample
+// When OTA will work, prolong WiFi channel being enabled by updating wifiLastUsedAt
+
 
 void setup() {
   // init serial
@@ -91,7 +134,12 @@ void setup() {
   // init Control Button
   pinMode(PIN_CONTROL, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_CONTROL), controlButtonChanged, CHANGE);
-  
+
+  // init OTA
+  ArduinoOTA.onStart(onStartOTA);
+  ArduinoOTA.onError(onErrorOTA);
+  ArduinoOTA.onProgress(onProgressOTA);
+  ArduinoOTA.onEnd(onEndOTA);
 }
 
 bool ledValue = false;
@@ -99,22 +147,8 @@ bool pumpEnabled = false;
 
 void loop() {
 
-  // Check if any data received via radio
-  if (radio.available()) {
-    int paySize = radio.getDynamicPayloadSize();
-    if (paySize > 255) {
-      Serial.println("Too big payload received, skipping...");
-    } else {
-      radio.read(buffer, paySize);
-      buffer[paySize] = 0;
-      Serial.print("Received (");
-      Serial.print(paySize);
-      Serial.println(")");
-      Serial.print(buffer);
-      Serial.println();
-    }
-  } else {
-    Serial.println("No data received");
+  if (wifiEnabled){
+    ArduinoOTA.handle();
   }
 
   // Check control button state
@@ -136,6 +170,18 @@ void loop() {
         wifiEnabled = wifiClickHandled;
         wifiLastUsedAt = millis();
         Serial.println(wifiClickHandled ? "Success" : "Failure");
+
+        if (wifiEnabled) {
+          IPAddress ip = WiFi.softAPIP();
+          Serial.print("Local IP: ");
+          Serial.print(ip);
+          Serial.println();
+
+          // Activate OTA mode
+          ArduinoOTA.begin();
+          Serial.println("OTA enabled...");
+        }
+
       } else {
         Serial.println("Disabling WiFi AP...");
         wifiClickHandled = enableWiFi(false);
@@ -162,6 +208,25 @@ void loop() {
   // digitalWrite(PIN_RELAY, ledValue ? HIGH : LOW);
   // digitalWrite(PIN_EXT_LED, ledValue ? HIGH : LOW);
   // Serial.println(ledValue);
+
+  // TODO: radio command should be blocked if OTA is started, active commands should be stopped prior to start OTA
+  // Check if any data received via radio
+  if (radio.available()) {
+    int paySize = radio.getDynamicPayloadSize();
+    if (paySize > 255) {
+      Serial.println("Too big payload received, skipping...");
+    } else {
+      radio.read(buffer, paySize);
+      buffer[paySize] = 0;
+      Serial.print("Received (");
+      Serial.print(paySize);
+      Serial.println(")");
+      Serial.print(buffer);
+      Serial.println();
+    }
+  } else {
+    Serial.println("No data received...");
+  }
 
   delay(200);
 }
