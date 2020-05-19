@@ -1,8 +1,8 @@
 typedef enum PumpControlCommand : unsigned short {
-    INFO        = 0x41,
-    PUMP_STATE  = 0x42,
-    START_PUMP  = 0x43,
-    STOP_PUMP   = 0x44,
+    INFO        = 0x101,
+    PUMP_STATE  = 0x102,
+    START_PUMP  = 0x103,
+    STOP_PUMP   = 0x104,
 };
 
 struct PumpControlStartBody {

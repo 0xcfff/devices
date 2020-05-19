@@ -6,6 +6,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <pump_messages.h>
+#include <xxtea-lib.h>
 
 #define PIN_RF_CE D2
 #define PIN_RF_CSN D8
