@@ -1,8 +1,8 @@
-typedef enum PumpControlCommand : unsigned short {
-    INFO        = 0x101,
-    PUMP_STATE  = 0x102,
-    START_PUMP  = 0x103,
-    STOP_PUMP   = 0x104,
+typedef enum PumpControlCommand : uint8_t {
+    PUMP_INFO   = 0x41,
+    PUMP_STATE  = 0x42,
+    PUMP_START  = 0x43,
+    PUMP_STOP   = 0x44,
 };
 
 struct PumpControlStartBody {
@@ -13,8 +13,12 @@ struct PumpControlStartBody {
 };
 
 // TBD add proper comments according to https://google.github.io/styleguide/cppguide.html#Comments
+struct RfRequestHeader {
+    uint8_t flags;
+    uint8_t command;
+};
+
 struct RfRequest {
-    unsigned short commandId;
     PumpControlCommand command;
     union {
        PumpControlStartBody startPump;

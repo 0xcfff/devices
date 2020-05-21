@@ -1,4 +1,5 @@
 #include <RF24.h>
+
 #include "message_sender.h"
 
 MessageSender::MessageSender(RF24 & channel, uint8_t *pipe):
@@ -9,7 +10,7 @@ MessageSender::MessageSender(RF24 & channel, uint8_t *pipe):
 }
 
 bool MessageSender::handle(){
-    
+    return true;
 }
 
 
