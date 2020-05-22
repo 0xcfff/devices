@@ -24,6 +24,7 @@ class CommandsProcessor{
         RF24 & _radio;
         uint8_t * _buffer;
         uint16_t _bufferSize;
+        bool _active;
 };
 
 #endif

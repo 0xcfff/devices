@@ -1,10 +1,11 @@
 #include <assert.h>
 
-#include "commands/commands_processor.h"
 #include "pump_messages.h"
+#include "commands_processor.h"
 
 CommandsProcessor::CommandsProcessor(RF24 & radio):
-    _radio(radio)
+    _radio(radio),
+    _active(false)
 {
     _buffer = new uint8_t[DEFAULT_PROCESSOR_BUFFER];
     _bufferSize = DEFAULT_PROCESSOR_BUFFER;
@@ -20,12 +21,14 @@ CommandsProcessor::~CommandsProcessor()
 bool CommandsProcessor::begin()
 {
     _radio.startListening();
+    _active = true;
     return true;
 }
 
 bool CommandsProcessor::end()
 {
     _radio.stopListening();
+    _active = false;
     return true;
 }
 
@@ -52,8 +55,14 @@ bool CommandsProcessor::handle()
 
 
 bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageSize){
-    RfRequestHeader * pHeader = (RfRequestHeader*)commandMessage;
-    if (pHeader->command == PUMP_INFO) {
+    RfRequest * pMessage = (RfRequest*)commandMessage;
+    switch (pMessage->header.command)
+    {
+        case PUMP_START:
+            //PumpStartStopCommandHandler * handler = new PumpStartStopCommandHandler();
+            break;
+    }
+    if (pMessage->header.command == PUMP_INFO) {
         //TBD: handle
     }
     //TBD: handle
@@ -69,6 +78,6 @@ bool CommandsProcessor::validateMessageSize(uint16_t messageSize){
 }
 
 void CommandsProcessor::reportMalformedInboundMessage(void * commandMessage, uint16_t messageSize){
-    RfRequestHeader * pHeader = (RfRequestHeader*)commandMessage;
-    Serial.printf("Unknown command received: %i", (int)pHeader->command);
+    RfRequest * pMessage = (RfRequest*)commandMessage;
+    Serial.printf("Unknown command received: %i", (int)pMessage->header.command);
 }

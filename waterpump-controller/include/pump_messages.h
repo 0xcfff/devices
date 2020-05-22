@@ -1,4 +1,9 @@
-typedef enum PumpControlCommand : uint8_t {
+#ifndef _PUMP_MESSAGES_H_
+#define _PUMP_MESSAGES_H_
+
+#include <stdint.h>
+
+enum PumpControlCommand : uint8_t {
     PUMP_INFO   = 0x41,
     PUMP_STATE  = 0x42,
     PUMP_START  = 0x43,
@@ -19,11 +24,17 @@ struct RfRequestHeader {
 };
 
 struct RfRequest {
-    PumpControlCommand command;
+    RfRequestHeader header;
     union {
        PumpControlStartBody startPump;
-    };
+    } body;
 };
+
+struct PumpControlStartPumpBody {
+    // duration to which the pump should be started
+    uint16_t durationSec;
+};
+
 
 struct PumpControlInfoResponse {
     // UNIX format date and time when firmware was built
@@ -56,3 +67,5 @@ struct RfResponse{
         PumpControlStatusResponse pumpStatus;;
     };
 };
+
+#endif
