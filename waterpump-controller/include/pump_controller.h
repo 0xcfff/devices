@@ -15,6 +15,8 @@
 
 #define PUMP_DEFAULT_MAX_DURATION_SEC (30 * 60)
 
+// TODO: Rename to RelayController
+
 class PumpController{
     public:
         PumpController(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationSec = PUMP_DEFAULT_MAX_DURATION_SEC);
