@@ -9,6 +9,7 @@
 #define PUMPCTL_ENABLE_LOW      0x00
 #define PUMPCTL_START_ON        0x02
 #define PUMPCTL_START_OFF       0x00
+// TODO: Add Autostart mode
 
 #define PUMPSTATE_INACTIVE      0x00
 #define PUMPSTATE_ACTIVE        0x01
@@ -23,6 +24,10 @@ class PumpController{
 
         bool begin();
         bool end();
+        // TODO: Add "handle"
+        // TODO: Add scheduled auto stop functionality
+        // TODO: Add statistics collection logic
+        // TODO: Add logging
 
         bool isWorking();
         bool startPump(uint16_t duration);
