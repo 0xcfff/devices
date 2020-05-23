@@ -1,3 +1,5 @@
+#ifndef UNIT_TEST
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <RF24.h>
@@ -234,3 +236,5 @@ void loop() {
 
   delay(200);
 }
+
+#endif
