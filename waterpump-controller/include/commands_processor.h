@@ -3,11 +3,13 @@
 
 #include <RF24.h>
 
+#include "pump_controller.h" 
+
 #define DEFAULT_PROCESSOR_BUFFER 32
 
 class CommandsProcessor{
     public:
-        CommandsProcessor(RF24 & radio);
+        CommandsProcessor(RF24 & radio, PumpController & waterPump);
 
         ~CommandsProcessor();
 
@@ -22,6 +24,8 @@ class CommandsProcessor{
 
     private:
         RF24 & _radio;
+        PumpController & _waterPump;
+
         uint8_t * _buffer;
         uint16_t _bufferSize;
         bool _active;

@@ -10,9 +10,11 @@
 #define PUMPCTL_START_ON        0x02
 #define PUMPCTL_START_OFF       0x00
 // TODO: Add Autostart mode
+// TODO: Add default flags set
 
-#define PUMPSTATE_INACTIVE      0x00
-#define PUMPSTATE_ACTIVE        0x01
+#define PUMPSTATE_EMPTY         0x00
+#define PUMPSTATE_INIT          0x01
+#define PUMPSTATE_ACTIVE        0x02
 
 #define PUMP_DEFAULT_MAX_DURATION_SEC (30 * 60)
 
@@ -32,9 +34,11 @@ class PumpController{
         bool isWorking();
         bool startPump(uint16_t duration);
         bool stopPump();
+        bool switchPump();
 
     private:
-        bool changePumpState(bool isWorking, uint16_t duration);
+        bool initPump();
+        bool changePumpState(bool isWorking, uint16_t duration = 0);
         bool readPumpState();
 
     private:

@@ -3,7 +3,6 @@
 #define PUMPSIG_ENABLE      ((_controlFlags & PUMPCTL_ENABLE_HIGH) == PUMPCTL_ENABLE_HIGH ? HIGH : LOW)
 #define PUMPSIG_DISABLE     ((_controlFlags & PUMPCTL_ENABLE_HIGH) == PUMPCTL_ENABLE_HIGH ? LOW : HIGH)
 #define PUMPSIG_INIT        ((_controlFlags & PUMPCTL_START_ON) == PUMPCTL_START_ON ? PUMPSIG_ENABLE : PUMPSIG_DISABLE)
-#define PUMPSATE_ACTIVE     ((_controlFlags & PUMPCTL_START_ON) == PUMPCTL_START_ON ? PUMPSIG_ENABLE : PUMPSIG_DISABLE)
 
 #define IS_FLAG_SET(flag, x) ((x &flag) == flag)
 #define SET_FLAG(flag, x) (x|=flag)
@@ -12,7 +11,7 @@
 PumpController::PumpController(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationSec):
     _controlPin(controlPin),
     _controlFlags(controlFlags),
-    _stateFlags(PUMPSTATE_INACTIVE),
+    _stateFlags(PUMPSTATE_EMPTY),
     _maxWorkDurationSec(maxWorkDurationSec),
     _totalStartCount(0),
     _totalWorkedSec(0),
@@ -23,7 +22,13 @@ PumpController::PumpController(uint8_t controlPin, uint8_t controlFlags, uint16_
 
 bool PumpController::begin(){ 
     bool result = true;
-    if (!IS_FLAG_SET(PUMPSTATE_ACTIVE, _stateFlags)) {
+    if (!IS_FLAG_SET(PUMPSTATE_INIT, _stateFlags)){
+        result = initPump();
+        if (result) {
+            SET_FLAG(PUMPSTATE_INIT, _stateFlags);
+        }
+    }
+    if (result && !IS_FLAG_SET(PUMPSTATE_ACTIVE, _stateFlags)) {
         result = changePumpState(PUMPSIG_INIT == PUMPSIG_ENABLE, _maxWorkDurationSec);
         if (result) {
             SET_FLAG(PUMPSTATE_ACTIVE, _stateFlags);
@@ -44,6 +49,8 @@ bool PumpController::end(){
 }
 
 bool PumpController::isWorking(){
+    if (!IS_FLAG_SET(PUMPSTATE_ACTIVE, _stateFlags))
+        return false;
     return readPumpState();
 }
 
@@ -65,6 +72,22 @@ bool PumpController::stopPump(){
         return false;
 
     return changePumpState(false, 0);
+}
+
+//TODO: cover with tests
+bool PumpController::switchPump(){
+    if (!IS_FLAG_SET(PUMPSTATE_ACTIVE, _stateFlags))
+        return false;
+    
+    bool enabled = isWorking();
+    bool result = enabled ? stopPump() : startPump(0);
+    return result;
+}
+
+
+bool PumpController::initPump(){
+    pinMode(_controlPin, OUTPUT);
+    return true;
 }
 
 

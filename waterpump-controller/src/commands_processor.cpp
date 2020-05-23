@@ -3,8 +3,9 @@
 #include "pump_messages.h"
 #include "commands_processor.h"
 
-CommandsProcessor::CommandsProcessor(RF24 & radio):
+CommandsProcessor::CommandsProcessor(RF24 & radio, PumpController & waterPump):
     _radio(radio),
+    _waterPump(waterPump),
     _active(false)
 {
     _buffer = new uint8_t[DEFAULT_PROCESSOR_BUFFER];
@@ -20,6 +21,7 @@ CommandsProcessor::~CommandsProcessor()
 
 bool CommandsProcessor::begin()
 {
+    _waterPump.begin();
     _radio.startListening();
     _active = true;
     return true;
@@ -27,6 +29,7 @@ bool CommandsProcessor::begin()
 
 bool CommandsProcessor::end()
 {
+    _waterPump.end();
     _radio.stopListening();
     _active = false;
     return true;
@@ -55,17 +58,26 @@ bool CommandsProcessor::handle()
 
 
 bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageSize){
+    bool handled = true;
     RfRequest * pMessage = (RfRequest*)commandMessage;
     switch (pMessage->header.command)
     {
-        case PUMP_START:
-            //PumpStartStopCommandHandler * handler = new PumpStartStopCommandHandler();
-            break;
+        case PUMP_START: {
+                bool startPumpResult = _waterPump.startPump(pMessage->body.startPump.durationSec);
+                // TODO: Log result
+                break;
+            }
+        case PUMP_STOP: {
+                bool stopPumpResult = _waterPump.stopPump();
+                // TODO: Log result
+                break;
+            }
+        default: {
+                handled = false;
+                break;
+            }
     }
-    if (pMessage->header.command == PUMP_INFO) {
-        //TBD: handle
-    }
-    //TBD: handle
+    return handled;
 }
 
 

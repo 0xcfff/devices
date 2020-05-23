@@ -10,6 +10,9 @@
 #include <pump_messages.h>
 #include <xxtea-lib.h>
 
+#include "pump_controller.h"
+#include "commands_processor.h"
+
 #define PIN_RF_CE D2
 #define PIN_RF_CSN D8
 #define PIN_EXT_LED D1
@@ -26,6 +29,12 @@ char * buffer = new char[255];
 
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
 
+
+// Pump Relay
+PumpController waterPumpRelay(PIN_RELAY, PUMPCTL_ENABLE_HIGH | PUMPCTL_START_OFF);
+
+// Commands Processor
+CommandsProcessor commandsProcessor(radio, waterPumpRelay);
 
 bool wifiEnabled = false;
 bool wifiClickHandled = false;
@@ -133,8 +142,11 @@ void setup() {
   pinMode(PIN_EXT_LED, OUTPUT);
 
   // init Relay
-  pinMode(PIN_RELAY, OUTPUT);
-  digitalWrite(PIN_RELAY, LOW);
+  // pinMode(PIN_RELAY, OUTPUT);
+  // digitalWrite(PIN_RELAY, LOW);
+
+  // init Commands Processor
+  commandsProcessor.begin();
 
   // init Control Button
   pinMode(PIN_CONTROL, INPUT_PULLUP);
@@ -208,31 +220,35 @@ void loop() {
     ledValue = !ledValue;
     digitalWrite(PIN_EXT_LED, ledValue && wifiEnabled ? HIGH : LOW);
   }
-  
-  // ledValue = !ledValue;
-  // digitalWrite(PIN_RELAY, ledValue ? HIGH : LOW);
+
+
+  waterPumpRelay.switchPump();
+
   // digitalWrite(PIN_EXT_LED, ledValue ? HIGH : LOW);
   // Serial.println(ledValue);
 
   // TODO: radio command should be blocked if OTA is started, active commands should be stopped prior to start OTA
   // Check if any data received via radio
-  if (radio.available()) {
-    int paySize = radio.getDynamicPayloadSize();
-    if (paySize > 255) {
-      Serial.println("Too big payload received, skipping...");
-    } else {
-      radio.read(buffer, paySize);
-      buffer[paySize] = 0;
-      Serial.print("Received (");
-      Serial.print(paySize);
-      Serial.println(")");
-      Serial.print(buffer);
-      Serial.println();
-    }
-  } else {
-    Serial.println("No data received...");
-  }
+  // if (radio.available()) {
+  //   int paySize = radio.getDynamicPayloadSize();
+  //   if (paySize > 255) {
+  //     Serial.println("Too big payload received, skipping...");
+  //   } else {
+  //     radio.read(buffer, paySize);
+  //     buffer[paySize] = 0;
+  //     Serial.print("Received (");
+  //     Serial.print(paySize);
+  //     Serial.println(")");
+  //     Serial.print(buffer);
+  //     Serial.println();
+  //   }
+  // } else {
+  //   Serial.println("No data received...");
+  // }
 
+  commandsProcessor.handle();
+
+  Serial.println("tick...");
 
   delay(200);
 }
