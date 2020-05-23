@@ -51,6 +51,7 @@ bool PumpController::end(){
 bool PumpController::isWorking(){
     if (!IS_FLAG_SET(PUMPSTATE_ACTIVE, _stateFlags))
         return false;
+        // TODO: read pump state from flags as the pin is set to be OUTPUT, not input
     return readPumpState();
 }
 
