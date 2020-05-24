@@ -25,13 +25,13 @@ Relay::Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationS
 bool Relay::begin(){ 
     bool result = true;
     if (!IS_FLAG_SET(RELAYSTATE_INIT, _stateFlags)){
-        result = initPump();
+        result = init();
         if (result) {
             SET_FLAG(RELAYSTATE_INIT, _stateFlags);
         }
     }
     if (result && !IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
-        result = changePumpState(RELAYSIG_INIT == RELAYSIG_ENABLE, _maxWorkDurationSec);
+        result = changeRelayState(RELAYSIG_INIT == RELAYSIG_ENABLE, _maxWorkDurationSec);
         if (result) {
             SET_FLAG(RELAYSTATE_ACTIVE, _stateFlags);
         }
@@ -42,7 +42,7 @@ bool Relay::begin(){
 bool Relay::end(){
     bool result = true;
     if (IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
-        result = changePumpState(false, 0);;
+        result = changeRelayState(false, 0);;
         if (result) {
             RESET_FLAG(RELAYSTATE_ACTIVE, _stateFlags);
         }
@@ -54,7 +54,7 @@ bool Relay::getState(){
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
         // TODO: read pump state from flags as the pin is set to be OUTPUT, not input
-    return readPumpState();
+    return readRelayState();
 }
 
 bool Relay::setState(bool isTurnedOn, uint16_t duration){
@@ -73,7 +73,7 @@ bool Relay::turnOn(uint16_t duration){
         (duration == 0 || duration > _maxWorkDurationSec) 
         ? _maxWorkDurationSec 
         : duration;
-    return changePumpState(true, actualDuration);
+    return changeRelayState(true, actualDuration);
 }
 
 bool Relay::turnOff(){
@@ -81,7 +81,7 @@ bool Relay::turnOff(){
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
 
-    return changePumpState(false, 0);
+    return changeRelayState(false, 0);
 }
 
 //TODO: cover with tests
@@ -95,13 +95,13 @@ bool Relay::flip(){
 }
 
 
-bool Relay::initPump(){
+bool Relay::init(){
     pinMode(_controlPin, OUTPUT);
     return true;
 }
 
 
-bool Relay::changePumpState(bool isWorking, uint16_t duration) {
+bool Relay::changeRelayState(bool isWorking, uint16_t duration) {
     digitalWrite(_controlPin, isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE);
     _workDurationSec = duration;
     if (isWorking) {
@@ -114,6 +114,6 @@ bool Relay::changePumpState(bool isWorking, uint16_t duration) {
     return true;
 }
 
-bool Relay::readPumpState(){
+bool Relay::readRelayState(){
     return digitalRead(_controlPin) == RELAYSIG_ENABLE;
 }

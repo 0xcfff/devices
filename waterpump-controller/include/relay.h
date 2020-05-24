@@ -37,9 +37,9 @@ class Relay{
         bool flip();
 
     private:
-        bool initPump();
-        bool changePumpState(bool isWorking, uint16_t duration = RELAY_DURATION_MAXALLOWED);
-        bool readPumpState();
+        bool init();
+        bool changeRelayState(bool isWorking, uint16_t duration = RELAY_DURATION_MAXALLOWED);
+        bool readRelayState();
 
     private:
         uint8_t _controlPin;
