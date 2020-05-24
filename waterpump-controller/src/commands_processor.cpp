@@ -3,13 +3,13 @@
 #include "pump_messages.h"
 #include "commands_processor.h"
 
-CommandsProcessor::CommandsProcessor(RF24 & radio, Relay & waterPump):
+CommandsProcessor::CommandsProcessor(RF24 & radio, Relay & waterPumpRelay):
     _radio(radio),
-    _waterPump(waterPump),
+    _waterPumpRelay(waterPumpRelay),
     _active(false)
 {
-    _buffer = new uint8_t[DEFAULT_PROCESSOR_BUFFER];
-    _bufferSize = DEFAULT_PROCESSOR_BUFFER;
+    _buffer = new uint8_t[DEFAULT_PROCESSOR_BUFFER_SIZE];
+    _bufferSize = DEFAULT_PROCESSOR_BUFFER_SIZE;
 }
 
 CommandsProcessor::~CommandsProcessor()
@@ -21,7 +21,7 @@ CommandsProcessor::~CommandsProcessor()
 
 bool CommandsProcessor::begin()
 {
-    _waterPump.begin();
+    _waterPumpRelay.begin();
     _radio.startListening();
     _active = true;
     return true;
@@ -29,7 +29,7 @@ bool CommandsProcessor::begin()
 
 bool CommandsProcessor::end()
 {
-    _waterPump.end();
+    _waterPumpRelay.end();
     _radio.stopListening();
     _active = false;
     return true;
@@ -63,12 +63,12 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
     switch (pMessage->header.command)
     {
         case PUMP_START: {
-                bool startPumpResult = _waterPump.turnOn(pMessage->body.startPump.durationSec);
+                bool startPumpResult = _waterPumpRelay.turnOn(pMessage->body.pumpStartOrFlip.durationSec);
                 // TODO: Log result
                 break;
             }
         case PUMP_STOP: {
-                bool stopPumpResult = _waterPump.turnOff();
+                bool stopPumpResult = _waterPumpRelay.turnOff();
                 // TODO: Log result
                 break;
             }

@@ -8,9 +8,10 @@ enum PumpControlCommand : uint8_t {
     PUMP_STATE  = 0x42,
     PUMP_START  = 0x43,
     PUMP_STOP   = 0x44,
+    PUMP_FLIP   = 0x45,
 };
 
-struct PumpControlStartBody {
+struct PumpControlStartOrFlipBody {
     // Used to specify desired pump work duration.
     // Zero means maximum allowed. If the value specified is zero or exceeds the maximum 
     // allowed by pump control defaults, the default maximum value will be used, see defaults.h for details.
@@ -26,7 +27,7 @@ struct RfRequestHeader {
 struct RfRequest {
     RfRequestHeader header;
     union {
-       PumpControlStartBody startPump;
+       PumpControlStartOrFlipBody pumpStartOrFlip;
     } body;
 };
 

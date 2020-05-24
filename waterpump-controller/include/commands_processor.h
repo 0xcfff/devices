@@ -5,11 +5,11 @@
 
 #include "relay.h" 
 
-#define DEFAULT_PROCESSOR_BUFFER 32
+#define DEFAULT_PROCESSOR_BUFFER_SIZE 32
 
 class CommandsProcessor{
     public:
-        CommandsProcessor(RF24 & radio, Relay & waterPump);
+        CommandsProcessor(RF24 & radio, Relay & waterPumpRelay);
 
         ~CommandsProcessor();
 
@@ -24,7 +24,7 @@ class CommandsProcessor{
 
     private:
         RF24 & _radio;
-        Relay & _waterPump;
+        Relay & _waterPumpRelay;
 
         uint8_t * _buffer;
         uint16_t _bufferSize;
