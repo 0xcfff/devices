@@ -10,7 +10,7 @@
 #include <pump_messages.h>
 #include <xxtea-lib.h>
 
-#include "pump_controller.h"
+#include "relay.h"
 #include "commands_processor.h"
 
 #define PIN_RF_CE D2
@@ -31,7 +31,7 @@ RF24 radio(PIN_RF_CE, PIN_RF_CSN);
 
 
 // Pump Relay
-PumpController waterPumpRelay(PIN_RELAY, PUMPCTL_ENABLE_HIGH | PUMPCTL_START_OFF);
+Relay waterPumpRelay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_OFF);
 
 // Commands Processor
 CommandsProcessor commandsProcessor(radio, waterPumpRelay);
@@ -222,7 +222,7 @@ void loop() {
   }
 
 
-  waterPumpRelay.switchPump();
+  waterPumpRelay.flip();
 
   // digitalWrite(PIN_EXT_LED, ledValue ? HIGH : LOW);
   // Serial.println(ledValue);

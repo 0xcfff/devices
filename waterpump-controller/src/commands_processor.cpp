@@ -3,7 +3,7 @@
 #include "pump_messages.h"
 #include "commands_processor.h"
 
-CommandsProcessor::CommandsProcessor(RF24 & radio, PumpController & waterPump):
+CommandsProcessor::CommandsProcessor(RF24 & radio, Relay & waterPump):
     _radio(radio),
     _waterPump(waterPump),
     _active(false)
@@ -63,12 +63,12 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
     switch (pMessage->header.command)
     {
         case PUMP_START: {
-                bool startPumpResult = _waterPump.startPump(pMessage->body.startPump.durationSec);
+                bool startPumpResult = _waterPump.turnOn(pMessage->body.startPump.durationSec);
                 // TODO: Log result
                 break;
             }
         case PUMP_STOP: {
-                bool stopPumpResult = _waterPump.stopPump();
+                bool stopPumpResult = _waterPump.turnOff();
                 // TODO: Log result
                 break;
             }
