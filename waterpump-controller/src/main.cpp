@@ -30,11 +30,11 @@ char * buffer = new char[255];
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
 
 
-// Pump Relay
+// Water Pump Relay
 Relay waterPumpRelay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_OFF);
 
 // Commands Processor
-CommandsProcessor commandsProcessor(radio, waterPumpRelay);
+CommandsProcessor radioCommandsProcessor(radio, waterPumpRelay);
 
 bool wifiEnabled = false;
 bool wifiClickHandled = false;
@@ -146,7 +146,7 @@ void setup() {
   // digitalWrite(PIN_RELAY, LOW);
 
   // init Commands Processor
-  commandsProcessor.begin();
+  radioCommandsProcessor.begin();
 
   // init Control Button
   pinMode(PIN_CONTROL, INPUT_PULLUP);
@@ -222,7 +222,7 @@ void loop() {
   }
 
 
-  waterPumpRelay.flip();
+  //waterPumpRelay.flip();
 
   // digitalWrite(PIN_EXT_LED, ledValue ? HIGH : LOW);
   // Serial.println(ledValue);
@@ -246,7 +246,8 @@ void loop() {
   //   Serial.println("No data received...");
   // }
 
-  commandsProcessor.handle();
+  radioCommandsProcessor.handle();
+  waterPumpRelay.handle();
 
   Serial.println("tick...");
 

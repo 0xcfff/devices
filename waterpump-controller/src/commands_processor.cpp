@@ -37,7 +37,7 @@ bool CommandsProcessor::end()
 
 
 bool CommandsProcessor::handle()
-{
+{    
     if (_radio.available()){
         uint16_t messageSize = _radio.getDynamicPayloadSize();
 
@@ -62,6 +62,11 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
     RfRequest * pMessage = (RfRequest*)commandMessage;
     switch (pMessage->header.command)
     {
+        case PUMP_FLIP: {
+                bool flipPumpResult = _waterPumpRelay.flip(pMessage->body.pumpStartOrFlip.durationSec);
+                // TODO: Log result
+                break;
+            }
         case PUMP_START: {
                 bool startPumpResult = _waterPumpRelay.turnOn(pMessage->body.pumpStartOrFlip.durationSec);
                 // TODO: Log result

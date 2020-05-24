@@ -15,8 +15,8 @@ Relay::Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationS
     _controlFlags(controlFlags),
     _stateFlags(RELAYSTATE_EMPTY),
     _maxWorkDurationSec(maxWorkDurationSec),
-    _totalStartCount(0),
-    _totalWorkedSec(0),
+    _totalPhysicalTurnOnCount(0),
+    _totalTurnedOnDurationSec(0),
     _lastStarted(0),
     _lastStopped(0)
 {
@@ -83,14 +83,31 @@ bool Relay::turnOff(){
     return changeRelayState(false, 0);
 }
 
-bool Relay::flip(){
+bool Relay::flip(uint16_t duration){
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
     
     bool enabled = getState();
-    bool result = enabled ? turnOff() : turnOn(0);
+    bool result = enabled ? turnOff() : turnOn(duration);
     return result;
 }
+
+
+bool Relay::handle(){
+    if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
+        return false;
+
+    bool result = true;
+    if (_workDurationSec > 0) {
+        unsigned long worked = (millis() - _lastStarted) / 1000;
+        if (worked > _workDurationSec) {
+            result = turnOff();
+            // TODO: Log automatic stop
+        }
+    }
+    return result;
+}
+
 
 
 bool Relay::init(){
@@ -101,13 +118,14 @@ bool Relay::init(){
 
 bool Relay::changeRelayState(bool isWorking, uint16_t duration) {
     digitalWrite(_controlPin, isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE);
-    _workDurationSec = duration;
     if (isWorking) {
         _lastStarted = millis();
-        _totalStartCount++;
+        _workDurationSec = duration;
+        _totalPhysicalTurnOnCount++;
     } else {
         _lastStopped = millis();
-        _totalWorkedSec += (uint32_t)((_lastStarted - _lastStopped) / 1000);
+        _workDurationSec = 0;
+        _totalTurnedOnDurationSec += (uint32_t)((_lastStarted - _lastStopped) / 1000);
     }
     return true;
 }

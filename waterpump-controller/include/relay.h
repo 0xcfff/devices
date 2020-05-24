@@ -33,7 +33,9 @@ class Relay{
         bool setState(bool isTurnedOn, uint16_t duration = RELAY_DURATION_MAXALLOWED);
         bool turnOn(uint16_t duration = RELAY_DURATION_MAXALLOWED);
         bool turnOff();
-        bool flip();
+        bool flip(uint16_t duration = RELAY_DURATION_MAXALLOWED);
+
+        bool handle();
 
     private:
         bool init();
@@ -48,8 +50,8 @@ class Relay{
         
         uint16_t _workDurationSec;
 
-        uint16_t _totalStartCount;
-        uint32_t _totalWorkedSec;
+        uint16_t _totalPhysicalTurnOnCount;
+        uint32_t _totalTurnedOnDurationSec;
         unsigned long _lastStarted;
         unsigned long _lastStopped;
 };
