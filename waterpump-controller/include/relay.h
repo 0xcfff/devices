@@ -17,14 +17,13 @@
 #define RELAY_DURATION_INFINITE     0
 #define RELAY_DURATION_MAXALLOWED   0
 
-// TODO: Rename to RelayController
-
 class Relay{
     public:
         Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationSec = RELAY_DURATION_INFINITE);
 
         bool begin();
         bool end();
+        // TODO: Make independent of Arduino framework
         // TODO: Add "handle"
         // TODO: Add scheduled auto stop functionality
         // TODO: Add statistics collection logic

@@ -30,7 +30,7 @@ bool Relay::begin(){
             SET_FLAG(RELAYSTATE_INIT, _stateFlags);
         }
     }
-    if (result && !IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
+    if (IS_FLAG_SET(RELAYSTATE_INIT, _stateFlags) && !IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
         result = changeRelayState(RELAYSIG_INIT == RELAYSIG_ENABLE, _maxWorkDurationSec);
         if (result) {
             SET_FLAG(RELAYSTATE_ACTIVE, _stateFlags);
@@ -53,7 +53,6 @@ bool Relay::end(){
 bool Relay::getState(){
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
-        // TODO: read pump state from flags as the pin is set to be OUTPUT, not input
     return readRelayState();
 }
 
@@ -65,7 +64,7 @@ bool Relay::setState(bool isTurnedOn, uint16_t duration){
 
 
 bool Relay::turnOn(uint16_t duration){
-    // if controller instance inactive, then pump can't be stoped
+    // if relay instance is inactive, then it can't be turned on
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
 
@@ -77,14 +76,13 @@ bool Relay::turnOn(uint16_t duration){
 }
 
 bool Relay::turnOff(){
-    // if controller instance inactive, then pump can't be stoped
+    // if relay instance is inactive, then it can't be turned off
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
 
     return changeRelayState(false, 0);
 }
 
-//TODO: cover with tests
 bool Relay::flip(){
     if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags))
         return false;
