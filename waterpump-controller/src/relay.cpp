@@ -1,14 +1,12 @@
 #include <Arduino.h>
 
+#include "shared_macroses.h"
+
 #include "relay.h"
 
 #define RELAYSIG_ENABLE      ((_controlFlags & RELAYCTL_ENABLE_HIGH) == RELAYCTL_ENABLE_HIGH ? HIGH : LOW)
 #define RELAYSIG_DISABLE     ((_controlFlags & RELAYCTL_ENABLE_HIGH) == RELAYCTL_ENABLE_HIGH ? LOW : HIGH)
 #define RELAYSIG_INIT        ((_controlFlags & RELAYCTL_START_ON) == RELAYCTL_START_ON ? RELAYSIG_ENABLE : RELAYSIG_DISABLE)
-
-#define IS_FLAG_SET(flag, x) ((x &flag) == flag)
-#define SET_FLAG(flag, x) (x|=flag)
-#define RESET_FLAG(flag, x) (x=(x & ~flag))
 
 Relay::Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationSec):
     _controlPin(controlPin),
@@ -24,12 +22,16 @@ Relay::Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationS
 
 bool Relay::begin(){ 
     bool result = true;
+
+    // handle basic init actions
     if (!IS_FLAG_SET(RELAYSTATE_INIT, _stateFlags)){
         result = init();
         if (result) {
             SET_FLAG(RELAYSTATE_INIT, _stateFlags);
         }
     }
+
+    // auto init relay state
     if (IS_FLAG_SET(RELAYSTATE_INIT, _stateFlags) && !IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
         result = changeRelayState(RELAYSIG_INIT == RELAYSIG_ENABLE, _maxWorkDurationSec);
         if (result) {

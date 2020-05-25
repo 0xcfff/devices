@@ -7,11 +7,16 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <pump_messages.h>
 #include <xxtea-lib.h>
 
+#include <JC_Button.h>
+
+#include "led.h"
 #include "relay.h"
+#include "wifi_ap.h"
+#include "ota_updater.h"
 #include "commands_processor.h"
+#include "button_processor.h"
 
 #define PIN_RF_CE D2
 #define PIN_RF_CSN D8
@@ -20,7 +25,8 @@
 #define PIN_CONTROL D4
 
 #define CONTROL_FLASH_DELAY (3 * 1000)
-#define WIFI_AUTO_DISABLE (1 * 60 * 1000)
+#define WIFI_AUTO_DISABLE (1 * 60)
+#define FLASH_MODE_BLINK_INTERVAL 200
 
 
 const uint64_t pipes[2] = { 0xAC0001DD01LL, 0x544d52687CLL };  
@@ -30,26 +36,17 @@ char * buffer = new char[255];
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
 
 
-// Water Pump Relay
+// Components
 Relay waterPumpRelay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_OFF);
+WiFiAP wifiAp;
+Button controlButton(PIN_CONTROL);
+OtaUpdater ota;
+Led indicatorLed(PIN_EXT_LED, LEDCFG_ENABLE_HIGH | LEDCFG_START_OFF);
 
-// Commands Processor
+// Input processors
 CommandsProcessor radioCommandsProcessor(radio, waterPumpRelay);
+ControlButtonProcessor controlButtonProcessor(controlButton, ota, wifiAp, indicatorLed, WIFI_AUTO_DISABLE, CONTROL_FLASH_DELAY, FLASH_MODE_BLINK_INTERVAL);
 
-bool wifiEnabled = false;
-bool wifiClickHandled = false;
-unsigned long wifiLastUsedAt = 0;
-
-bool enableWiFi(bool enable) {
-  if (enable) {
-    WiFi.mode(WIFI_AP);
-    char apName[15];
-    sprintf(apName, "esp8266-%06x", ESP.getChipId());
-    return WiFi.softAP(apName);
-  } else {
-    return WiFi.enableAP(false);
-  }
-}
 
 bool controlPressed = false;
 bool controlChanged = false;
@@ -70,44 +67,6 @@ ICACHE_RAM_ATTR void controlButtonChanged() {
   }
 }
 
-void onStartOTA(){
-  wifiLastUsedAt = millis();
-}
-
-void onErrorOTA(ota_error_t error){
-  const char * errorDescr = NULL;
-  switch (error)
-  {
-  case OTA_AUTH_ERROR:
-    errorDescr = "auth";
-    break;
-  case OTA_BEGIN_ERROR:
-    errorDescr = "begin";
-    break;
-  case OTA_END_ERROR:
-    errorDescr = "end";
-    break;
-  case OTA_RECEIVE_ERROR:
-    errorDescr = "receive";
-    break;
-  default:
-    errorDescr = "unknown";
-    break;
-  }
-  Serial.printf("OTA error: %s", errorDescr);
-}
-
-void onProgressOTA(unsigned int progress, unsigned int total){
-  int progressPercent = (int)(progress * (100 / (float)total));
-  Serial.printf("OTA progress: %i%%\n", progressPercent);
-  wifiLastUsedAt = millis();
-}
-
-void onEndOTA(){
-  wifiLastUsedAt = millis();
-  Serial.printf("OTA completed, restarting...");
-  ESP.restart();
-}
 
 ///////////// TODO ////////////////////
 // Implement OTA based on ArduinoOTA sample
@@ -136,27 +95,15 @@ void setup() {
   radio.openReadingPipe(1, myPipe);
 
   radio.printDetails();
-  radio.startListening();
-
-  // init LED
-  pinMode(PIN_EXT_LED, OUTPUT);
-
-  // init Relay
-  // pinMode(PIN_RELAY, OUTPUT);
-  // digitalWrite(PIN_RELAY, LOW);
+  //radio.startListening(); // - called in processor
 
   // init Commands Processor
   radioCommandsProcessor.begin();
+  controlButtonProcessor.begin();
 
   // init Control Button
   pinMode(PIN_CONTROL, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_CONTROL), controlButtonChanged, CHANGE);
-
-  // init OTA
-  ArduinoOTA.onStart(onStartOTA);
-  ArduinoOTA.onError(onErrorOTA);
-  ArduinoOTA.onProgress(onProgressOTA);
-  ArduinoOTA.onEnd(onEndOTA);
 }
 
 bool ledValue = false;
@@ -164,90 +111,14 @@ bool pumpEnabled = false;
 
 void loop() {
 
-  if (wifiEnabled){
-    ArduinoOTA.handle();
-  }
-
-  // Check control button state
-  if (controlChanged && !controlPressed){
-    controlChanged = false;
-    wifiClickHandled = false;
-    if (controlClickDurationMillis <= CONTROL_FLASH_DELAY) {
-      Serial.println("ESP restart requested! Restarting....");
-      ESP.restart();
-    } 
-  }
-
-  // WiFi long press control
-  if (controlPressed && !wifiClickHandled) {
-    if (millis() - clickAt > CONTROL_FLASH_DELAY) {      
-      if (!wifiEnabled) {
-        Serial.println("Enabling WiFi AP...");
-        wifiClickHandled = enableWiFi(true);
-        wifiEnabled = wifiClickHandled;
-        wifiLastUsedAt = millis();
-        Serial.println(wifiClickHandled ? "Success" : "Failure");
-
-        if (wifiEnabled) {
-          IPAddress ip = WiFi.softAPIP();
-          Serial.print("Local IP: ");
-          Serial.print(ip);
-          Serial.println();
-
-          // Activate OTA mode
-          ArduinoOTA.begin();
-          Serial.println("OTA enabled...");
-        }
-
-      } else {
-        Serial.println("Disabling WiFi AP...");
-        wifiClickHandled = enableWiFi(false);
-        wifiEnabled = !wifiClickHandled;
-        Serial.println(wifiClickHandled ? "Success" : "Failure");
-      }
-    }
-  }
-
-  // Auto disable WiFi if usage time has expired
-  if (wifiEnabled) {
-    if (wifiLastUsedAt + WIFI_AUTO_DISABLE < millis()) {
-      Serial.println("Automatic WiFi AP disabling...");
-      wifiEnabled = !enableWiFi(false);
-      Serial.println(!wifiEnabled ? "Success" : "Failure");
-    }
-
-    // update led
-    ledValue = !ledValue;
-    digitalWrite(PIN_EXT_LED, ledValue && wifiEnabled ? HIGH : LOW);
-  }
-
-
-  //waterPumpRelay.flip();
-
-  // digitalWrite(PIN_EXT_LED, ledValue ? HIGH : LOW);
-  // Serial.println(ledValue);
-
-  // TODO: radio command should be blocked if OTA is started, active commands should be stopped prior to start OTA
-  // Check if any data received via radio
-  // if (radio.available()) {
-  //   int paySize = radio.getDynamicPayloadSize();
-  //   if (paySize > 255) {
-  //     Serial.println("Too big payload received, skipping...");
-  //   } else {
-  //     radio.read(buffer, paySize);
-  //     buffer[paySize] = 0;
-  //     Serial.print("Received (");
-  //     Serial.print(paySize);
-  //     Serial.println(")");
-  //     Serial.print(buffer);
-  //     Serial.println();
-  //   }
-  // } else {
-  //   Serial.println("No data received...");
-  // }
-
+  controlButtonProcessor.handle();
   radioCommandsProcessor.handle();
   waterPumpRelay.handle();
+
+  Serial.printf("Relay state: %i\n", (int)waterPumpRelay.getState());
+  if (waterPumpRelay.getState()) {
+    waterPumpRelay.flip();
+  }
 
   Serial.println("tick...");
 
