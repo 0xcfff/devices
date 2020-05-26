@@ -31,19 +31,19 @@
 
 // relay state reading
 void test_getState_beforeBegin_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.turnOn();
     TEST_ASSERT_EQUAL(false, relay.getState());
     // TODO: Add assertion of pin state using digitalRead and its fake analog for native plantorm
 }
 void test_getState_afterBeginWhenTurnedOff_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOff();
     TEST_ASSERT_EQUAL(false, relay.getState());
 }
 void test_getState_afterBeginWhenTurnedOn_shouldReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOn();
     TEST_ASSERT_EQUAL(true, relay.getState());
@@ -51,17 +51,17 @@ void test_getState_afterBeginWhenTurnedOn_shouldReturnTrue(void) {
 
 // turnOn
 void test_turnOn_beforeBegin_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     TEST_ASSERT_EQUAL(false, relay.turnOn());
 }
 
 void test_turnOn_afterBegin_shouldReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     TEST_ASSERT_EQUAL(true, relay.turnOn());
 }
 void test_turnOn_whenCalledSecondTime_shouldReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOn();
     delay(30);
@@ -70,19 +70,19 @@ void test_turnOn_whenCalledSecondTime_shouldReturnTrue(void) {
 
 // turnOff
 void test_turnOff_beforeBegin_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.turnOn();
     TEST_ASSERT_EQUAL(false, relay.turnOff());
 }
 void test_turnOff_afterBegin_shouldReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOn();
     delay(30);
     TEST_ASSERT_EQUAL(true, relay.turnOff());
 }
 void test_turnOff_whenCalledSecondTime_shouldReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOn();
     delay(30);
@@ -93,11 +93,11 @@ void test_turnOff_whenCalledSecondTime_shouldReturnTrue(void) {
 
 // flip
 void test_flip_beforeBegin_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     TEST_ASSERT_EQUAL(false, relay.flip());
 }
 void test_flip_afterBegin_shouldSwithcStateAndReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOff();
     delay(30);
@@ -105,7 +105,7 @@ void test_flip_afterBegin_shouldSwithcStateAndReturnTrue(void) {
     TEST_ASSERT_EQUAL(true, relay.getState());
 }
 void test_flip_whenCalledSecondTime_shouldSwithStateBackAndReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOff();
     delay(30);
@@ -117,17 +117,17 @@ void test_flip_whenCalledSecondTime_shouldSwithStateBackAndReturnTrue(void) {
 
 // setState
 void test_setState_beforeBegin_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);    
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);    
     TEST_ASSERT_EQUAL(false, relay.setState(true));
 }
 void test_setState_afterBegin_shouldUpdateStateAndReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     TEST_ASSERT_EQUAL(true, relay.setState(true));
     TEST_ASSERT_EQUAL(true, relay.getState());
 }
 void test_setState_whenCalledSecondTime_shouldUpdateStateAndReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.setState(true);
     delay(30);
@@ -137,27 +137,27 @@ void test_setState_whenCalledSecondTime_shouldUpdateStateAndReturnTrue(void) {
 
 // automatic relay state set on begin
 void test_autoInitRelayState_beforeBeginWhenOffByDefault_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_OFF);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_OFF);
     TEST_ASSERT_EQUAL(false, relay.getState());
 }
 void test_autoInitRelayState_beforeBeginWhenOnByDefault_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_ON);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_ON);
     TEST_ASSERT_EQUAL(false, relay.getState());
 }
 void test_autoInitRelayState_afterBeginWhenOffByDefault_shouldReturnFalse(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_OFF);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_OFF);
     relay.begin();
     TEST_ASSERT_EQUAL(false, relay.getState());
 }
 void test_autoInitRelayState_afterBeginWhenOnByDefault_shouldReturnTrue(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_ON);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_ON);
     relay.begin();
     TEST_ASSERT_EQUAL(true, relay.getState());
 }
 
 // automatic turnOff
 void test_autoTurnOff_whenTurnOnWorkDurationSet_shouldTurnOffRelayWhenDurationEnds(void) {
-    Relay relay(PIN_RELAY, RELAYCTL_ENABLE_HIGH);
+    Relay relay(PIN_RELAY, RELAYCFG_ENABLE_HIGH);
     relay.begin();
     relay.turnOn(30);
     delay(60);

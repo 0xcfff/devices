@@ -34,11 +34,15 @@ bool WiFiAP::setApName(const char * apName){
 
 bool WiFiAP::begin(){
     // Nothing, WiFi AP does not require any pre-init actions
+    return true;
 }
+
 bool WiFiAP::end(){
+    bool result = true;
     if (getState()) {
-        turnOff();
+        result = turnOff();
     }
+    return result;
 }
 
 bool WiFiAP::getState(){

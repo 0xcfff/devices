@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-#define RELAYCTL_ENABLE_HIGH     0x01
-#define RELAYCTL_ENABLE_LOW      0x00
-#define RELAYCTL_START_ON        0x02
-#define RELAYCTL_START_OFF       0x00
+#define RELAYCFG_ENABLE_HIGH     0x01
+#define RELAYCFG_ENABLE_LOW      0x00
+#define RELAYCFG_START_ON        0x02
+#define RELAYCFG_START_OFF       0x00
 // TODO: Add Autostart mode
 // TODO: Add default flags set
 

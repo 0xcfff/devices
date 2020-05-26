@@ -26,7 +26,7 @@ class WiFiAP {
 
     private:
         const char * _apName;
-        uint16_t _stateFlags;
+        uint8_t _stateFlags;
 
 };
 

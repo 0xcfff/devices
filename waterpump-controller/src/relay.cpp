@@ -5,9 +5,9 @@
 
 #include "relay.h"
 
-#define RELAYSIG_ENABLE      ((_controlFlags & RELAYCTL_ENABLE_HIGH) == RELAYCTL_ENABLE_HIGH ? HIGH : LOW)
-#define RELAYSIG_DISABLE     ((_controlFlags & RELAYCTL_ENABLE_HIGH) == RELAYCTL_ENABLE_HIGH ? LOW : HIGH)
-#define RELAYSIG_INIT        ((_controlFlags & RELAYCTL_START_ON) == RELAYCTL_START_ON ? RELAYSIG_ENABLE : RELAYSIG_DISABLE)
+#define RELAYSIG_ENABLE      ((_controlFlags & RELAYCFG_ENABLE_HIGH) == RELAYCFG_ENABLE_HIGH ? HIGH : LOW)
+#define RELAYSIG_DISABLE     ((_controlFlags & RELAYCFG_ENABLE_HIGH) == RELAYCFG_ENABLE_HIGH ? LOW : HIGH)
+#define RELAYSIG_INIT        ((_controlFlags & RELAYCFG_START_ON) == RELAYCFG_START_ON ? RELAYSIG_ENABLE : RELAYSIG_DISABLE)
 
 Relay::Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationSec):
     _controlPin(controlPin),
@@ -107,20 +107,13 @@ bool Relay::handle(){
 
 
 bool Relay::init(){
-    //pinMode(_controlPin, OUTPUT_OPEN_DRAIN);
     pinMode(_controlPin, OUTPUT);
-    //digitalWrite(_controlPin, RELAYSIG_INIT);
-    LOG_DEBUGLN("Relay set output");
     return true;
 }
 
 
 bool Relay::changeRelayState(bool isWorking, uint16_t duration) {
-    LOG_DEBUGF("Set Relay to: %s\n", isWorking ? "working" : "not working");
-    LOG_DEBUGF("Set Relay to: %i\n", (int)(isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE));
-    LOG_DEBUGF("Set Relay pin: %i\n", (int)_controlPin);
     digitalWrite(_controlPin, isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE);
-//    digitalWrite(_controlPin, isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE);
     if (isWorking) {
         _lastStarted = millis();
         _workDurationSec = duration;

@@ -18,34 +18,34 @@
 #include "commands_processor.h"
 #include "button_processor.h"
 
-#define PIN_RF_CE D3
-#define PIN_RF_CSN D8
-#define PIN_EXT_LED D1
-#define PIN_RELAY D2
-#define PIN_CONTROL D4
+#define PIN_RADIO_CE          D3
+#define PIN_RADIO_CSN         D8
+#define PIN_LED_INDICATOR D1
+#define PIN_RELAY_WATERPUMP D2
+#define PIN_BUTTON_CONTROL D4
 
-#define CONTROL_FLASH_DELAY (3 * 1000)
-#define WIFI_AUTO_DISABLE (1 * 60)
-#define FLASH_MODE_BLINK_INTERVAL 200
-
+#define CONTROLBUTTON_LONGPRESS_DELAY             (3 * 1000)
+#define OTAMODE_AUTODISABLE_DURATION_SEC          (1 * 60)
+#define OTAMODE_INDICATORLED_BLINKINTERVAL_MSEC   200
+#define WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC     (30 * 60)
 
 const uint64_t pipes[2] = { 0xAC0001DD01LL, 0x544d52687CLL };  
 const uint64_t myPipe = 0xAC0001DD01LL; 
 char * buffer = new char[255];
 
-RF24 radio(PIN_RF_CE, PIN_RF_CSN);
+RF24 radio(PIN_RADIO_CE, PIN_RADIO_CSN);
 
 
 // Components
-Relay waterPumpRelay(PIN_RELAY, RELAYCTL_ENABLE_HIGH | RELAYCTL_START_OFF);
+Relay waterPumpRelay(PIN_RELAY_WATERPUMP, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_OFF, WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC);
 WiFiAP wifiAp;
-Button controlButton(PIN_CONTROL);
+Button controlButton(PIN_BUTTON_CONTROL);
 OtaUpdater ota;
-Led indicatorLed(PIN_EXT_LED, LEDCFG_ENABLE_HIGH | LEDCFG_START_OFF);
+Led indicatorLed(PIN_LED_INDICATOR, LEDCFG_ENABLE_HIGH | LEDCFG_START_OFF);
 
 // Input processors
 CommandsProcessor radioCommandsProcessor(radio, waterPumpRelay);
-ControlButtonProcessor controlButtonProcessor(controlButton, ota, wifiAp, indicatorLed, WIFI_AUTO_DISABLE, CONTROL_FLASH_DELAY, FLASH_MODE_BLINK_INTERVAL);
+ControlButtonProcessor controlButtonProcessor(controlButton, ota, wifiAp, indicatorLed, OTAMODE_AUTODISABLE_DURATION_SEC, CONTROLBUTTON_LONGPRESS_DELAY, OTAMODE_INDICATORLED_BLINKINTERVAL_MSEC);
 
 
 bool controlPressed = false;
@@ -54,7 +54,7 @@ unsigned long  controlClickDurationMillis = 0;
 unsigned long clickAt = 0;
 
 ICACHE_RAM_ATTR void controlButtonChanged() {
-  bool isPressed = digitalRead(PIN_CONTROL) == LOW;
+  bool isPressed = digitalRead(PIN_BUTTON_CONTROL) == LOW;
   if (isPressed != controlPressed) {
     controlPressed = isPressed;
     if (isPressed) {
@@ -69,8 +69,6 @@ ICACHE_RAM_ATTR void controlButtonChanged() {
 
 
 ///////////// TODO ////////////////////
-// Implement OTA based on ArduinoOTA sample
-// When OTA will work, prolong WiFi channel being enabled by updating wifiLastUsedAt
 // Implement Security on top of nrf24l01 (sign messages, keys exchange (preshared or something else), etc)
 
 
@@ -108,9 +106,9 @@ void setup() {
   radio.printDetails();
 
   // init Control Button
-  //pinMode(PIN_CONTROL, INPUT_PULLUP);
-  pinMode(PIN_CONTROL, INPUT);
-  attachInterrupt(digitalPinToInterrupt(PIN_CONTROL), controlButtonChanged, CHANGE);
+  //pinMode(PIN_BUTTON_CONTROL, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_CONTROL, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_CONTROL), controlButtonChanged, CHANGE);
 }
 
 bool ledValue = false;
