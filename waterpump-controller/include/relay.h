@@ -11,8 +11,8 @@
 // TODO: Add default flags set
 
 #define RELAYSTATE_EMPTY         0x00
-#define RELAYSTATE_INIT          0x01
-#define RELAYSTATE_ACTIVE        0x02
+#define RELAYSTATE_ACTIVE        0x01
+#define RELAYSTATE_ON            0x02
 
 #define RELAY_DURATION_INFINITE     0
 #define RELAY_DURATION_MAXALLOWED   0

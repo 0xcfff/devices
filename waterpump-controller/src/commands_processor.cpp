@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include "log_macroses.h"
+
 #include "pump_messages.h"
 #include "commands_processor.h"
 
@@ -17,6 +19,7 @@ CommandsProcessor::~CommandsProcessor()
     delete _buffer;
     _buffer = nullptr;
     _bufferSize = 0;
+    LOG_DEBUGLN("Destroy commands processor");
 }
 
 bool CommandsProcessor::begin()

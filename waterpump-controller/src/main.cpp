@@ -18,7 +18,7 @@
 #include "commands_processor.h"
 #include "button_processor.h"
 
-#define PIN_RF_CE D2
+#define PIN_RF_CE D3
 #define PIN_RF_CSN D8
 #define PIN_EXT_LED D1
 #define PIN_RELAY D2
@@ -79,6 +79,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Initializing...");
 
+  radio.begin();
+
   radio.setChannel(100);
   radio.setPALevel(RF24_PA_HIGH);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
   radio.setDataRate(RF24_250KBPS);
@@ -91,23 +93,31 @@ void setup() {
   
   //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
 
-  //radio.openWritingPipe(pipes[1]);
+  radio.openWritingPipe(pipes[1]);
   radio.openReadingPipe(1, myPipe);
 
   radio.printDetails();
   //radio.startListening(); // - called in processor
 
+  
+
   // init Commands Processor
   radioCommandsProcessor.begin();
   controlButtonProcessor.begin();
 
+  radio.printDetails();
+
   // init Control Button
-  pinMode(PIN_CONTROL, INPUT_PULLUP);
+  //pinMode(PIN_CONTROL, INPUT_PULLUP);
+  pinMode(PIN_CONTROL, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIN_CONTROL), controlButtonChanged, CHANGE);
 }
 
 bool ledValue = false;
 bool pumpEnabled = false;
+
+unsigned long milliz = 0;
+bool relayState = false;
 
 void loop() {
 
@@ -116,8 +126,15 @@ void loop() {
   waterPumpRelay.handle();
 
   Serial.printf("Relay state: %i\n", (int)waterPumpRelay.getState());
-  if (waterPumpRelay.getState()) {
-    waterPumpRelay.flip();
+  // if (waterPumpRelay.getState()) {
+  //   waterPumpRelay.flip();
+  // }
+  
+  unsigned long curMillis = millis();
+  if (curMillis - milliz > 5000 ) {
+     Serial.write("Swap relay");
+     waterPumpRelay.flip();
+     milliz = curMillis;
   }
 
   Serial.println("tick...");

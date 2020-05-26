@@ -1,6 +1,8 @@
 #ifndef _COMMANDS_PROCESSOR_H_
 #define _COMMANDS_PROCESSOR_H_
 
+#include <Arduino.h>
+#include <SPI.h>
 #include <RF24.h>
 
 #include "relay.h" 

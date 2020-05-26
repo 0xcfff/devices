@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "shared_macroses.h"
+#include "log_macroses.h"
 
 #include "relay.h"
 
@@ -22,20 +23,13 @@ Relay::Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationS
 
 bool Relay::begin(){ 
     bool result = true;
-
-    // handle basic init actions
-    if (!IS_FLAG_SET(RELAYSTATE_INIT, _stateFlags)){
+    if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)){
         result = init();
         if (result) {
-            SET_FLAG(RELAYSTATE_INIT, _stateFlags);
-        }
-    }
-
-    // auto init relay state
-    if (IS_FLAG_SET(RELAYSTATE_INIT, _stateFlags) && !IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
-        result = changeRelayState(RELAYSIG_INIT == RELAYSIG_ENABLE, _maxWorkDurationSec);
-        if (result) {
-            SET_FLAG(RELAYSTATE_ACTIVE, _stateFlags);
+            result = changeRelayState(RELAYSIG_INIT == RELAYSIG_ENABLE, _maxWorkDurationSec);
+            if (result) {
+                SET_FLAG(RELAYSTATE_ACTIVE, _stateFlags);
+            }
         }
     }
     return result;
@@ -44,7 +38,7 @@ bool Relay::begin(){
 bool Relay::end(){
     bool result = true;
     if (IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags)) {
-        result = changeRelayState(false, 0);;
+        result = changeRelayState(RELAYSIG_INIT, 0);;
         if (result) {
             RESET_FLAG(RELAYSTATE_ACTIVE, _stateFlags);
         }
@@ -104,7 +98,7 @@ bool Relay::handle(){
         unsigned long worked = (millis() - _lastStarted) / 1000;
         if (worked > _workDurationSec) {
             result = turnOff();
-            // TODO: Log automatic stop
+            LOG_INFOLN(F("Relay turned off automatically."));
         }
     }
     return result;
@@ -113,25 +107,36 @@ bool Relay::handle(){
 
 
 bool Relay::init(){
+    //pinMode(_controlPin, OUTPUT_OPEN_DRAIN);
     pinMode(_controlPin, OUTPUT);
+    //digitalWrite(_controlPin, RELAYSIG_INIT);
+    LOG_DEBUGLN("Relay set output");
     return true;
 }
 
 
 bool Relay::changeRelayState(bool isWorking, uint16_t duration) {
+    LOG_DEBUGF("Set Relay to: %s\n", isWorking ? "working" : "not working");
+    LOG_DEBUGF("Set Relay to: %i\n", (int)(isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE));
+    LOG_DEBUGF("Set Relay pin: %i\n", (int)_controlPin);
     digitalWrite(_controlPin, isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE);
+//    digitalWrite(_controlPin, isWorking ? RELAYSIG_ENABLE : RELAYSIG_DISABLE);
     if (isWorking) {
         _lastStarted = millis();
         _workDurationSec = duration;
-        _totalPhysicalTurnOnCount++;
+        if (!IS_FLAG_SET(RELAYSTATE_ON, _stateFlags)) {
+            _totalPhysicalTurnOnCount++;
+            SET_FLAG(RELAYSTATE_ON, _stateFlags);
+        }
     } else {
         _lastStopped = millis();
         _workDurationSec = 0;
         _totalTurnedOnDurationSec += (uint32_t)((_lastStarted - _lastStopped) / 1000);
+        RESET_FLAG(RELAYSTATE_ON, _stateFlags);
     }
     return true;
 }
 
 bool Relay::readRelayState(){
-    return digitalRead(_controlPin) == RELAYSIG_ENABLE;
+    return IS_FLAG_SET(RELAYSTATE_ON, _stateFlags);
 }
