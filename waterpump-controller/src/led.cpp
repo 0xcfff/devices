@@ -42,7 +42,6 @@ bool Led::end(){
     return result;
 }
 
-
 bool Led::getState(){
     return IS_FLAG_SET(LEDSTATE_ACTIVE, _stateFlags) 
         && IS_FLAG_SET(LEDSTATE_ON, _stateFlags);
