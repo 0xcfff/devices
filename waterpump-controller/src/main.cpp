@@ -94,16 +94,14 @@ void setup() {
 
   
   radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_CONTROLLER, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(2, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_WATERPUMP, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(3, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_BANYA, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(3, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN4, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(3, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN5, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(1, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_CONTROLLER, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(2, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_WATERPUMP, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(3, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_BANYA, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(4, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN4, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(5, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN5, RF_DEVICEID_WATERPUMP));
 
   radio.printDetails();
-  //radio.startListening(); // - called in processor
-
-  
+  //radio.startListening(); // - called in processor  
 
   // init Commands Processor
   radioCommandsProcessor.begin();
@@ -113,7 +111,7 @@ void setup() {
 
   // init Control Button
   //pinMode(PIN_BUTTON_CONTROL, INPUT_PULLUP);
-  pinMode(PIN_BUTTON_CONTROL, INPUT);
+  //pinMode(PIN_BUTTON_CONTROL, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_CONTROL), controlButtonChanged, CHANGE);
 }
 

@@ -14,7 +14,7 @@
 #define RF_DEVICEID_UNKNOWN4          0xC3
 #define RF_DEVICEID_UNKNOWN5          0xC4
 
-#define RF_P2P_L3NETWORK_ADDRESS(network, sourceDeviceId, targetDeviceId) ((network & 0xFFFFFF0000LL) | ((0xFF & targetDeviceId) << 8) | (0xFF & sourceDeviceId))
-#define RF_CS_L3NETWORK_ADDRESS(network, targetDeviceId) ((network & 0xFFFFFF0000LL) | ((targetDeviceId && 0xFF) << 8) | (targetDeviceId && 0xFF))
+#define RF_L3NET_P2P_ADDR(network, sourceDeviceId, targetDeviceId) ((network & 0xFFFFFF0000LL) | ((0xFF & targetDeviceId) << 8) | (0xFF & sourceDeviceId))
+#define RF_L3NET_CS_ADDR(network, targetDeviceId) ((network & 0xFFFFFF0000LL) | ((targetDeviceId && 0xFF) << 8) | (targetDeviceId && 0xFF))
 
 #endif
