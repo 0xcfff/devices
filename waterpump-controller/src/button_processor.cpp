@@ -34,9 +34,11 @@ bool ControlButtonProcessor::begin() {
 }
 
 bool ControlButtonProcessor::end() {
-    _otaUpdater.end();
-    _wifiAp.end();
-    _stateIndicatorLed.end();
+    bool result = 
+        _otaUpdater.end()
+        && _wifiAp.end()
+        && _stateIndicatorLed.end();
+    return result;
 }
 
 bool ControlButtonProcessor::handle() {

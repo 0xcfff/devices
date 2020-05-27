@@ -61,23 +61,32 @@ bool CommandsProcessor::handle()
 
 
 bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageSize){
+
+    LOG_DINF_TXT(txtSuccess, "SUCCESS");
+    LOG_DINF_TXT(txtFailure, "FAILURE");
+    LOG_DINF_TXT(txtCommandFlip, "WATERPUMP_FLIP");
+    LOG_DINF_TXT(txtCommandStart, "WATERPUMP_START");
+    LOG_DINF_TXT(txtCommandStop, "WATERPUMP_STOP");
+    LOG_DINF_TXT(txtCommandLogPattern, "%s command processed: %s\n");
+
+
     bool handled = true;
     RfRequest * pMessage = (RfRequest*)commandMessage;
     switch (pMessage->header.command)
     {
         case PUMP_FLIP: {
                 bool flipPumpResult = _waterPumpRelay.flip(pMessage->body.pumpStartOrFlip.durationSec);
-                // TODO: Log result
+                LOG_INFOF(txtCommandLogPattern, txtCommandFlip, flipPumpResult ?  txtSuccess : txtFailure);
                 break;
             }
         case PUMP_START: {
                 bool startPumpResult = _waterPumpRelay.turnOn(pMessage->body.pumpStartOrFlip.durationSec);
-                // TODO: Log result
+                LOG_INFOF(txtCommandLogPattern, txtCommandStart, startPumpResult ?  txtSuccess : txtFailure);
                 break;
             }
         case PUMP_STOP: {
                 bool stopPumpResult = _waterPumpRelay.turnOff();
-                // TODO: Log result
+                LOG_INFOF(txtCommandLogPattern, txtCommandStop, stopPumpResult ?  txtSuccess : txtFailure);
                 break;
             }
         default: {

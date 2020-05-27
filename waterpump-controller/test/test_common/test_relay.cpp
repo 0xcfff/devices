@@ -160,7 +160,7 @@ void test_autoInitRelayState_afterBeginWhenOnByDefault_shouldReturnTrue(void) {
 void test_autoTurnOff_whenTurnOnWorkDurationSet_shouldTurnOffRelayWhenDurationEnds(void) {
     Relay relay(TEST_RELAY_PIN, RELAYCFG_ENABLE_HIGH);
     relay.begin();
-    relay.turnOn(30);
+    relay.turnOn(30); // TODO: here is delay is set in millis, whereas Relay accepts only seconds - fix
     delay(60);
     relay.handle();
     TEST_ASSERT_EQUAL(false, relay.getState());

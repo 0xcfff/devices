@@ -17,6 +17,7 @@
 #include "ota_updater.h"
 #include "commands_processor.h"
 #include "button_processor.h"
+#include "dacha1_network.h"
 
 #define PIN_RADIO_CE          D3
 #define PIN_RADIO_CSN         D8
@@ -91,8 +92,13 @@ void setup() {
   
   //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
 
+  
   radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1, myPipe);
+  radio.openReadingPipe(1, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_CONTROLLER, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(2, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_WATERPUMP, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(3, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_BANYA, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(3, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN4, RF_DEVICEID_WATERPUMP));
+  radio.openReadingPipe(3, RF_P2P_L3NETWORK_ADDRESS(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN5, RF_DEVICEID_WATERPUMP));
 
   radio.printDetails();
   //radio.startListening(); // - called in processor

@@ -19,7 +19,7 @@
 
 class Relay{
     public:
-        Relay(uint8_t controlPin, uint8_t controlFlags, uint16_t maxWorkDurationSec = RELAY_DURATION_INFINITE);
+        Relay(uint8_t relayPin, uint8_t configFlags, uint16_t maxWorkDurationSec = RELAY_DURATION_INFINITE);
 
         bool begin();
         bool end();
@@ -43,8 +43,8 @@ class Relay{
         bool readRelayState();
 
     private:
-        uint8_t _controlPin;
-        uint8_t _controlFlags;
+        uint8_t _relayPin;
+        uint8_t _configFlags;
         uint8_t _stateFlags;
         uint16_t _maxWorkDurationSec;
         
