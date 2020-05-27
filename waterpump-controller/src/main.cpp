@@ -11,6 +11,8 @@
 
 #include <JC_Button.h>
 
+#include "log_macroses.h"
+
 #include "led.h"
 #include "relay.h"
 #include "wifi_ap.h"
@@ -34,43 +36,23 @@ const uint64_t pipes[2] = { 0xAC0001DD01LL, 0x544d52687CLL };
 const uint64_t myPipe = 0xAC0001DD01LL; 
 char * buffer = new char[255];
 
-RF24 radio(PIN_RADIO_CE, PIN_RADIO_CSN);
 
 
 // Components
-Relay waterPumpRelay(PIN_RELAY_WATERPUMP, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_OFF, WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC);
 WiFiAP wifiAp;
-Button controlButton(PIN_BUTTON_CONTROL);
 OtaUpdater ota;
+RF24 radio(PIN_RADIO_CE, PIN_RADIO_CSN);
+Button controlButton(PIN_BUTTON_CONTROL);
 Led indicatorLed(PIN_LED_INDICATOR, LEDCFG_ENABLE_HIGH | LEDCFG_START_OFF);
+Relay waterPumpRelay(PIN_RELAY_WATERPUMP, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_OFF, WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC);
 
 // Input processors
 CommandsProcessor radioCommandsProcessor(radio, waterPumpRelay);
 ControlButtonProcessor controlButtonProcessor(controlButton, ota, wifiAp, indicatorLed, OTAMODE_AUTODISABLE_DURATION_SEC, CONTROLBUTTON_LONGPRESS_DELAY, OTAMODE_INDICATORLED_BLINKINTERVAL_MSEC);
 
 
-bool controlPressed = false;
-bool controlChanged = false;
-unsigned long  controlClickDurationMillis = 0;
-unsigned long clickAt = 0;
-
-ICACHE_RAM_ATTR void controlButtonChanged() {
-  bool isPressed = digitalRead(PIN_BUTTON_CONTROL) == LOW;
-  if (isPressed != controlPressed) {
-    controlPressed = isPressed;
-    if (isPressed) {
-      clickAt = millis();
-      controlClickDurationMillis = 0;
-    } else {
-      controlClickDurationMillis = millis() - clickAt;
-    }
-    controlChanged = true;
-  }
-}
-
-
 ///////////// TODO ////////////////////
-// Implement Security on top of nrf24l01 (sign messages, keys exchange (preshared or something else), etc)
+// TODO: Implement Security on top of nrf24l01 (sign messages, keys exchange (preshared or something else), etc)
 
 
 void setup() {
@@ -78,6 +60,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Initializing...");
 
+  // init radio
   radio.begin();
 
   radio.setChannel(100);
@@ -92,34 +75,22 @@ void setup() {
   
   //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
 
-  
-  radio.openWritingPipe(pipes[1]);
+  //radio.openWritingPipe(pipes[1]);
   radio.openReadingPipe(1, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_CONTROLLER, RF_DEVICEID_WATERPUMP));
   radio.openReadingPipe(2, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_WATERPUMP, RF_DEVICEID_WATERPUMP));
   radio.openReadingPipe(3, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_BANYA, RF_DEVICEID_WATERPUMP));
   radio.openReadingPipe(4, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN4, RF_DEVICEID_WATERPUMP));
   radio.openReadingPipe(5, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN5, RF_DEVICEID_WATERPUMP));
 
-  radio.printDetails();
-  //radio.startListening(); // - called in processor  
-
   // init Commands Processor
   radioCommandsProcessor.begin();
   controlButtonProcessor.begin();
 
   radio.printDetails();
-
-  // init Control Button
-  //pinMode(PIN_BUTTON_CONTROL, INPUT_PULLUP);
-  //pinMode(PIN_BUTTON_CONTROL, INPUT);
-  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_CONTROL), controlButtonChanged, CHANGE);
+  LOG_INFOLN("Initialization completed.");
 }
 
-bool ledValue = false;
-bool pumpEnabled = false;
-
-unsigned long milliz = 0;
-bool relayState = false;
+int counter = 0;
 
 void loop() {
 
@@ -127,19 +98,9 @@ void loop() {
   radioCommandsProcessor.handle();
   waterPumpRelay.handle();
 
-  Serial.printf("Relay state: %i\n", (int)waterPumpRelay.getState());
-  // if (waterPumpRelay.getState()) {
-  //   waterPumpRelay.flip();
-  // }
-  
-  unsigned long curMillis = millis();
-  if (curMillis - milliz > 5000 ) {
-     Serial.write("Swap relay");
-     waterPumpRelay.flip();
-     milliz = curMillis;
+  if ((counter++ % 5) == 0){
+    LOG_DEBUGLN("Tick...");
   }
-
-  Serial.println("tick...");
 
   delay(200);
 }
