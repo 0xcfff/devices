@@ -98,6 +98,7 @@ bool Relay::handle(){
         unsigned long worked = (millis() - _lastStarted) / 1000;
         if (worked > _workDurationSec) {
             result = turnOff();
+            // TODO: consider what to do with logging here
             LOG_INFOLN(F("Relay turned off automatically."));
         }
     }
@@ -124,7 +125,7 @@ bool Relay::changeRelayState(bool isWorking, uint16_t duration) {
     } else {
         _lastStopped = millis();
         _workDurationSec = 0;
-        _totalTurnedOnDurationSec += (uint32_t)((_lastStarted - _lastStopped) / 1000);
+        _totalTurnedOnDurationSec += (uint32_t)((_lastStopped - _lastStarted) / 1000);
         RESET_FLAG(RELAYSTATE_ON, _stateFlags);
     }
     return true;
