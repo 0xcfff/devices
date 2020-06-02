@@ -1,5 +1,5 @@
 #include "shared_macroses.h"
-#include "log_macroses.h"
+#include "thin_logging.h"
 
 #include "button_processor.h"
 

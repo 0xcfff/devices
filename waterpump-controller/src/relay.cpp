@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include "shared_macroses.h"
-#include "log_macroses.h"
+#include "thin_logging.h"
 
 #include "relay.h"
 

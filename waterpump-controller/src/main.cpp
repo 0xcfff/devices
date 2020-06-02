@@ -11,7 +11,7 @@
 
 #include <JC_Button.h>
 
-#include "log_macroses.h"
+#include "thin_logging.h"
 
 #include "led.h"
 #include "relay.h"

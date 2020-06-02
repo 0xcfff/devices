@@ -18,3 +18,5 @@
 #define RF_L3NET_CS_ADDR(network, targetDeviceId) ((network & 0xFFFFFF0000LL) | ((targetDeviceId && 0xFF) << 8) | (targetDeviceId && 0xFF))
 
 #endif
+
+// TODO: think of splitting devices-network lib into two libs, separate messages from the network definition???

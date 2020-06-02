@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "log_macroses.h"
+#include "thin_logging.h"
 
 #include "pump_messages.h"
 #include "commands_processor.h"

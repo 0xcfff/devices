@@ -1,9 +1,11 @@
-
 #define LOG_ENABLED
 #define LOG_DEBUG_ENABLED 1
 #define LOG_INFO_ENABLED 1
 #define LOG_WARN_ENABLED 1
 #define LOG_ERROR_ENABLED 1
+
+// TODO: add min_log_level, make it affect the actual list of LOG_*_ENABLED defibned above
+// TODO: replace each LOG_*_ENABLED with two items, LOG_*_ENABLED and LOG_*_ENABLED_FLAG, one of the two should not be defined if the logging for specified level is not enabled
 
 #define LOG_DDBG_TXT(name, value) const char * name = value
 #define LOG_DDBG_FTXT(name, value) const PROGMEM char name[] = value

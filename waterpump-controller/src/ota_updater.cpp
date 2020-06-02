@@ -1,3 +1,5 @@
+#include <thin_logging.h>
+
 #include "shared_macroses.h"
 
 #include "ota_updater.h"
@@ -94,20 +96,17 @@ void OtaUpdater::onErrorOTA(ota_error_t error){
             errorDescr = "unknown";
             break;
     }
-    Serial.printf("OTA error: %s", errorDescr);
-  // TODO: add proper logging
+    LOG_ERRORF("OTA error: %s\n", errorDescr);
 }
 
 void OtaUpdater::onProgressOTA(unsigned int progress, unsigned int total){
     int progressPercent = (int)(progress * (100 / (float)total));
-    Serial.printf("OTA progress: %i%%\n", progressPercent);
-    // TODO: Add proper logging
+    LOG_INFOF("OTA progress: %i%%\n", progressPercent);
     _lastActivityAt = millis();
 }
 
 void OtaUpdater::onEndOTA(){
     _lastActivityAt = millis();
-    Serial.printf("OTA completed, restarting...");
-    // TODO: Add proper logging
+    LOG_INFOLN("OTA completed, restarting...");
     ESP.restart();
 }
