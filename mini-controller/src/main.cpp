@@ -2,12 +2,12 @@
 #include <SPI.h>
 #include <RF24.h>
 #include <Wire.h>
-
+#include <pcf8574_esp.h>
 
 #include <U8g2lib.h>
 #include <JC_Button.h>
 
-#include "log_macroses.h"
+#include "thin_logging.h"
 #include "dacha1_network.h"
 #include "pump_messages.h"
 
@@ -16,7 +16,8 @@
 
 #define PIN_CONTROL_BUTTON D1
 
-#define DISPLAY_ADDRESS 0x3C
+#define I2C_ADDRESS_DISPLAY 0x3C
+#define I2C_ADDRESS_PCF8574 0x20
 
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
@@ -28,6 +29,8 @@ RF24 radio(PIN_RF_CE, PIN_RF_CSN);
 Button controlButton(PIN_CONTROL_BUTTON);
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
+
+PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
 void setup() {
 
@@ -58,8 +61,16 @@ void setup() {
 
     controlButton.begin();
 
-    //Wire.begin();
+    Wire.begin();
+    Wire.setClock(100000L);
+    pcf8574.begin();
+    pcf8574.write8(0);
     u8g2.begin();
+    
+    // blink
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(200);
+    digitalWrite(LED_BUILTIN, LOW);
 }
 
 int counter = 0;
@@ -171,13 +182,22 @@ void drawURL(void)
 #endif
 }
 
+bool isHighLighted = false;
+
 void loop() {
 //  bool written = radio.write(testMessage, 12);
 // bool written = radio.write(testMessage, 12);
 
 //  int len = sprintf(buffer, "Cycle: %i, millis since start %i msec", cyclesCount++, millis());
 
-//    detectDevices();
+    //detectDevices();
+
+    uint8_t ios = pcf8574.read8();
+    Serial.printf("PCF State: %i\n", (int)ios);
+    if (ios > 0) {
+        isHighLighted = !isHighLighted;
+        digitalWrite(BUILTIN_LED, isHighLighted ? HIGH : LOW);
+    }
 
     u8g2.clearBuffer();
     drawLogo();
