@@ -1,3 +1,5 @@
+#define U8G2_REF_MAN_PIC
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <RF24.h>
@@ -5,7 +7,6 @@
 #include <pcf8574_esp.h>
 #include <tnlog.h>
 
-#define U8G2_REF_MAN_PIC
 
 #include <U8g2lib.h>
 #include <JC_Button.h>
@@ -13,7 +14,7 @@
 #include "dacha1_network.h"
 #include "pump_messages.h"
 
-#define PIN_RF_CE D2
+#define PIN_RF_CE D3
 #define PIN_RF_CSN D8
 
 #define PIN_CONTROL_BUTTON D1 // TODO remove
@@ -183,7 +184,6 @@ void drawURL(void)
     u8g2.enableUTF8Print();
     u8g2.setCursor(1,54);
     u8g2.print("Привет!");
-    //u8g2.drawStr(1,54,"Привет!");
   }
 #endif
 }
@@ -191,6 +191,8 @@ void drawURL(void)
 bool isHighLighted = false;
 
 const char * main_list = "Living Room\nBedroom\nBedtime\nWatching TV\nGoing Out!";
+
+bool firstTime = true;
 
 void loop() {
 //  bool written = radio.write(testMessage, 12);
@@ -202,6 +204,14 @@ void loop() {
 
     //u8g2.clearBuffer();
 
+    if (firstTime) {
+        u8g2.clearBuffer();
+        drawLogo();
+        drawURL();
+        u8g2.sendBuffer();        
+        firstTime = false;
+    }
+
     uint8_t ios = pcf8574.read8();
     Serial.printf("PCF State: %i\n", (int)ios);
     if (ios > 0) {
@@ -211,13 +221,13 @@ void loop() {
         
 
         if (ios & 1) {
-            u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
+            u8g2.userInterfaceSelectionList("Select Room", 2, main_list);
         }
         if (ios & 2) {
             u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
         }
         if (ios & 4) {
-            u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
+            u8g2.userInterfaceSelectionList("Select Room", 3, main_list);
         }
 
     }
@@ -227,7 +237,7 @@ void loop() {
     // u8g2.clearBuffer();
     // drawLogo();
     // drawURL();
-    u8g2.sendBuffer();
+    // u8g2.sendBuffer();
 
 
     controlButton.read();
