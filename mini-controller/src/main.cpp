@@ -3,18 +3,24 @@
 #include <RF24.h>
 #include <Wire.h>
 #include <pcf8574_esp.h>
+#include <tnlog.h>
+
+#define U8G2_REF_MAN_PIC
 
 #include <U8g2lib.h>
 #include <JC_Button.h>
 
-#include "thin_logging.h"
 #include "dacha1_network.h"
 #include "pump_messages.h"
 
 #define PIN_RF_CE D2
 #define PIN_RF_CSN D8
 
-#define PIN_CONTROL_BUTTON D1
+#define PIN_CONTROL_BUTTON D1 // TODO remove
+
+#define PIN_PCF8574_BUTTON_MODE     1
+#define PIN_PCF8574_BUTTON_OK       2
+#define PIN_PCF8574_BUTTON_CANCEL   4
 
 #define I2C_ADDRESS_DISPLAY 0x3C
 #define I2C_ADDRESS_PCF8574 0x20
@@ -184,6 +190,8 @@ void drawURL(void)
 
 bool isHighLighted = false;
 
+const char * main_list = "Living Room\nBedroom\nBedtime\nWatching TV\nGoing Out!";
+
 void loop() {
 //  bool written = radio.write(testMessage, 12);
 // bool written = radio.write(testMessage, 12);
@@ -192,16 +200,33 @@ void loop() {
 
     //detectDevices();
 
+    //u8g2.clearBuffer();
+
     uint8_t ios = pcf8574.read8();
     Serial.printf("PCF State: %i\n", (int)ios);
     if (ios > 0) {
         isHighLighted = !isHighLighted;
-        digitalWrite(BUILTIN_LED, isHighLighted ? HIGH : LOW);
+        digitalWrite(LED_BUILTIN, isHighLighted ? HIGH : LOW);
+
+        
+
+        if (ios & 1) {
+            u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
+        }
+        if (ios & 2) {
+            u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
+        }
+        if (ios & 4) {
+            u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
+        }
+
     }
 
-    u8g2.clearBuffer();
-    drawLogo();
-    drawURL();
+    
+
+    // u8g2.clearBuffer();
+    // drawLogo();
+    // drawURL();
     u8g2.sendBuffer();
 
 

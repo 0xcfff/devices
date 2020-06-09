@@ -1,4 +1,4 @@
-#include <thin_logging.h>
+#include <tnlog.h>
 
 #include "shared_macroses.h"
 

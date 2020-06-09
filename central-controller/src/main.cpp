@@ -1,8 +1,7 @@
 #include <Arduino.h>
-
+#include <tnlog.h>
 #include <JC_Button.h>
 
-#include "log_macroses.h"
 #include "dacha1_network.h"
 #include "pump_messages.h"
 

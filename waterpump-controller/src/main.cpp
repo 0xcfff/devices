@@ -8,10 +8,9 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <xxtea-lib.h>
+#include <tnlog.h>
 
 #include <JC_Button.h>
-
-#include "thin_logging.h"
 
 #include "led.h"
 #include "relay.h"
