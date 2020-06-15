@@ -1,5 +1,3 @@
-#define U8G2_REF_MAN_PIC
-
 #include <Arduino.h>
 #include <SPI.h>
 #include <RF24.h>
@@ -9,10 +7,16 @@
 
 
 #include <U8g2lib.h>
-#include <JC_Button.h>
+//#include <JC_Button.h>
+#include "button.h"
 
 #include "dacha1_network.h"
 #include "pump_messages.h"
+#include "PumpDisabled.xbm"
+
+#include "main-view.h"
+#include "idle-processor.h"
+#include "buttons-processor.h"
 
 #define PIN_RF_CE D3
 #define PIN_RF_CSN D8
@@ -22,6 +26,7 @@
 #define PIN_PCF8574_BUTTON_MODE     1
 #define PIN_PCF8574_BUTTON_OK       2
 #define PIN_PCF8574_BUTTON_CANCEL   4
+#define PIN_PCF8574_INTERRUPT       D4
 
 #define I2C_ADDRESS_DISPLAY 0x3C
 #define I2C_ADDRESS_PCF8574 0x20
@@ -33,11 +38,20 @@ uint8_t buffer[255];
 int cyclesCount = 0;
 
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
-Button controlButton(PIN_CONTROL_BUTTON);
+Button controlButton(PIN_CONTROL_BUTTON, BUTTONCFG_ENABLE_HIGH);
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
 
 PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
+
+MainView mainView(u8g2);
+IdleProcessor idleProcessor(mainView);
+ButtonsProcessor buttonsProcessor(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, idleProcessor);
+
+ICACHE_RAM_ATTR void detectsButtons() {
+  Serial.println("Click Detected!!!");
+  //ESP.restart();
+}
 
 void setup() {
 
@@ -73,6 +87,8 @@ void setup() {
     pcf8574.begin();
     pcf8574.write8(0);
     u8g2.begin();
+
+    attachInterrupt(digitalPinToInterrupt(PIN_PCF8574_INTERRUPT), detectsButtons, CHANGE);
     
     // blink
     digitalWrite(LED_BUILTIN, HIGH);
@@ -184,6 +200,8 @@ void drawURL(void)
     u8g2.enableUTF8Print();
     u8g2.setCursor(1,54);
     u8g2.print("Привет!");
+
+    u8g2.drawXBM(96, 16, PumpDisabled_width, PumpDisabled_height, PumpDisabled_bits);        
   }
 #endif
 }
@@ -227,12 +245,15 @@ void loop() {
             u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
         }
         if (ios & 4) {
-            u8g2.userInterfaceSelectionList("Select Room", 3, main_list);
+            u8g2.noDisplay();
+            radio.powerDown();
         }
 
     }
 
-    
+    u8g2.clearBuffer();
+    buttonsProcessor.handle();
+    u8g2.sendBuffer();
 
     // u8g2.clearBuffer();
     // drawLogo();
@@ -240,21 +261,21 @@ void loop() {
     // u8g2.sendBuffer();
 
 
-    controlButton.read();
+    //controlButton.read();
 
-    if (controlButton.wasPressed()){
+    //if (controlButton.wasPressed()){
 
 //    if ((counter++ %2)==0) {
-        RfRequest * pReq = (RfRequest*)buffer;
-        pReq->header.flags = 0;
-        pReq->header.command = PUMP_FLIP;
-        pReq->body.pumpStartOrFlip.durationSec = 10 * 60;
-        bool written = radio.write(buffer, sizeof(RfRequestHeader) + sizeof(PumpControlStartOrFlipBody));
+    //     RfRequest * pReq = (RfRequest*)buffer;
+    //     pReq->header.flags = 0;
+    //     pReq->header.command = PUMP_FLIP;
+    //     pReq->body.pumpStartOrFlip.durationSec = 10 * 60;
+    //     bool written = radio.write(buffer, sizeof(RfRequestHeader) + sizeof(PumpControlStartOrFlipBody));
 
-        Serial.printf("Write %s\n", written ? "successful" : "failed");
-        Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
-        Serial.println();
-    }
+    //     Serial.printf("Write %s\n", written ? "successful" : "failed");
+    //     Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
+    //     Serial.println();
+    // }
 
     delay(200);
 }

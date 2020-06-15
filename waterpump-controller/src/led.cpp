@@ -1,5 +1,3 @@
-#include <ArduinoOTA.h>
-
 #include "shared_macroses.h"
 
 #include "led.h"
@@ -9,9 +7,9 @@
 #define LEDSIG_INIT        ((_configFlags & LEDCFG_START_ON) == LEDCFG_START_ON ? LEDSIG_ENABLE : LEDSIG_DISABLE)
 
 
-Led::Led(uint8_t ledPin, uint8_t controlFlags) :
+Led::Led(uint8_t ledPin, uint8_t configFlags) :
     _ledPin(ledPin),
-    _configFlags(controlFlags),
+    _configFlags(configFlags),
     _stateFlags(LEDSTATE_EMPTY)
 {
 
