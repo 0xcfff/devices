@@ -16,7 +16,7 @@
 
 #include "main-view.h"
 #include "idle-processor.h"
-#include "buttons-processor.h"
+#include "main-controller.h"
 
 #define PIN_RF_CE D3
 #define PIN_RF_CSN D8
@@ -46,7 +46,8 @@ PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
 MainView mainView(u8g2);
 IdleProcessor idleProcessor(mainView);
-ButtonsProcessor buttonsProcessor(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, idleProcessor);
+ModeSelectorPresenter modeSelectionPresenter(&mainView);
+MainController buttonsProcessor(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);
 
 ICACHE_RAM_ATTR void detectsButtons() {
   Serial.println("Click Detected!!!");

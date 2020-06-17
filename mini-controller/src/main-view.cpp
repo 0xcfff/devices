@@ -14,7 +14,7 @@ MainView::MainView(U8G2 & display) :
 
 }
 
-void MainView::drawImageView(uint8_t width, uint8_t height, uint8_t * xbm, char * label)
+void MainView::drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label)
 {
     u8g2_uint_t displayWidth = _display.getWidth();
     u8g2_uint_t displayHeight = _display.getHeight();

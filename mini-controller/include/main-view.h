@@ -9,7 +9,7 @@ class MainView{
     public:
         MainView(U8G2 & display);
     
-        void drawImageView(uint8_t width, uint8_t height, uint8_t * xbm, char * label);
+        void drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label);
 
     private:
         U8G2 & _display;
