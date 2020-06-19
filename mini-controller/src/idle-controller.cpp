@@ -1,6 +1,6 @@
 #include "idle-controller.h"
 
-IdleController::IdleController(MainView * view) :
+IdleController::IdleController(Display * view) :
     _view(view)
 {
 }

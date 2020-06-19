@@ -1,6 +1,6 @@
 #include <tnlog.h>
 
-#include "main-view.h"
+#include "display.h"
 
 #define STATUS_AREA_X       0
 #define STATUS_AREA_Y       16
@@ -8,13 +8,13 @@
 #define VIEW_AREA_X         0
 #define VIEW_AREA_Y         16
 
-MainView::MainView(U8G2 * display) :
+Display::Display(U8G2 * display) :
     _display(display)
 {
 
 }
 
-void MainView::drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label)
+void Display::drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label)
 {
     u8g2_uint_t displayWidth = _display->getWidth();
     u8g2_uint_t displayHeight = _display->getHeight();
@@ -41,11 +41,16 @@ void MainView::drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm,
     _isDirty = true;
 }
 
-bool MainView::isDirty(){
+void Display::begin(){
+    _display->begin();
+    _display->clearBuffer();
+}
+
+bool Display::isDirty(){
     return _isDirty;
 }
 
-bool MainView::flush(){
+bool Display::flush(){
     bool result = false;
     if (_isDirty) {
         _display->sendBuffer();

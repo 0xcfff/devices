@@ -1,6 +1,6 @@
 #include "waterpump-view.h"
 
-WaterPumpView::WaterPumpView(MainView * view):
+WaterPumpView::WaterPumpView(Display * view):
     _view(view)
 {
 }

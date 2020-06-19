@@ -1,13 +1,13 @@
 #include "mode-selector-presenter.h"
 
-ModeSelectorPresenter::ModeSelectorPresenter(MainView * view):
-    _view(view)
+ModeSelectorPresenter::ModeSelectorPresenter(Display * view):
+    _display(view)
 {
 
 }
 
 bool ModeSelectorPresenter::drawModeSplash(ModeDescription * modeDescriptor){
-    _view->drawImageView(
+    _display->drawImageView(
         modeDescriptor->splashWidth,
         modeDescriptor->splashHeight,
         modeDescriptor->splashScreenXBM,

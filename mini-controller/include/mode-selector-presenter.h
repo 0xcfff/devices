@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "main-view.h"
+#include "display.h"
 
 #define MODE_INFO_FLAG_DEFAULT     1
 #define MODE_INFO_FLAG_USEXBMP     2
@@ -19,12 +19,12 @@ struct ModeDescription {
 
 class ModeSelectorPresenter {
     public:
-        ModeSelectorPresenter(MainView * view);
+        ModeSelectorPresenter(Display * display);
 
         bool drawModeSplash(ModeDescription * modeDescriptor);
 
     private:
-        MainView * _view;
+        Display * _display;
 };
 
 #endif  // _MODE_SELECTOR_PRESENTER_H_

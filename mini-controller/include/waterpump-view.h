@@ -1,17 +1,17 @@
 #ifndef _WATERPUMP_VIEW_H_
 #define _WATERPUMP_VIEW_H_
 
-#include "main-view.h"
+#include "display.h"
 #include "waterpump-model.h"
 
 class WaterPumpView{
     public:
-        WaterPumpView(MainView * view);
+        WaterPumpView(Display * view);
 
         void drawModel(WaterPumpModel model);
 
     private:
-        MainView * _view;
+        Display * _view;
 
 };
 
