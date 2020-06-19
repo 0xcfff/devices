@@ -26,6 +26,7 @@ class ModeController{
         virtual bool activate() = 0;
         virtual bool deactivate() = 0;
 
+        virtual bool handleTick() = 0;
         virtual ModeControllerHandleUserInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) = 0;
 };
 

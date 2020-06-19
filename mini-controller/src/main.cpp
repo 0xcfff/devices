@@ -44,7 +44,7 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
 
 PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
-MainView mainView(u8g2);
+MainView mainView(&u8g2);
 IdleProcessor idleProcessor(mainView);
 ModeSelectorPresenter modeSelectionPresenter(&mainView);
 MainController buttonsProcessor(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);

@@ -5,14 +5,18 @@
 
 #include "U8g2lib.h"
 
-class MainView{
+class MainView {
     public:
-        MainView(U8G2 & display);
+        MainView(U8G2 * display);
     
         void drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label);
 
+        bool isDirty();
+        bool flush();
+
     private:
-        U8G2 & _display;
+        U8G2 * _display;
+        bool _isDirty;
 
 };
 
