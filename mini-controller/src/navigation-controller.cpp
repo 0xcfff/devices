@@ -20,9 +20,11 @@ MainController::~MainController()
     _model.clear();
 }
 
-
 bool MainController::handle(){
 
+    // check buttons changes from input driver
+    // in no button changes, check UI redraw is needed due to new ViewModel state
+    
     return true;
 }
 
