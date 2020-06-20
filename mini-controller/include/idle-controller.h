@@ -8,6 +8,10 @@ class IdleController : public ModeController{
     public:
         IdleController(Display * view);
 
+        bool activate() override;
+        bool deactivate() override;
+
+        bool handleTick() override;
         ModeControllerHandleUserInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
 
     private:

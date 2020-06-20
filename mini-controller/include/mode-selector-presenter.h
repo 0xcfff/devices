@@ -5,9 +5,9 @@
 
 #include "display.h"
 
-#define MODE_INFO_FLAG_DEFAULT     1
-#define MODE_INFO_FLAG_USEXBMP     2
-#define MODE_INFO_FLAG_USEPSTR     4
+#define MODEDESCR_FLAG_DEFAULTMODE 1
+#define MODEDESCR_FLAG_USEXBMP     2
+#define MODEDESCR_FLAG_USEPSTR     4
 
 struct ModeDescription {
     const char * modeName;

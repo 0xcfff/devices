@@ -6,12 +6,12 @@
 
 class WaterPumpView{
     public:
-        WaterPumpView(Display * view);
+        WaterPumpView(Display * display);
 
         void drawModel(WaterPumpModel model);
 
     private:
-        Display * _view;
+        Display * _display;
 
 };
 

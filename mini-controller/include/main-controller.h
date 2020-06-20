@@ -13,6 +13,8 @@ enum ButttonsProcessingResult : uint8_t {
     PROCESSOR_HANDLE_RESULT_IDLE        = 2
 };
 
+#define ROOTCTL_NO_MODECTL_SELECTED     0xFF
+
 
 class MainController{
     private:

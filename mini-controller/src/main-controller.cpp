@@ -5,7 +5,7 @@ MainController::MainController(uint8_t modePin, uint8_t confirmPin, uint8_t canc
     _confirmPin(confirmPin),
     _cancelPin(cancelPin),
     _defaultControllerIndex(0),
-    _currentControllerIndex(0),
+    _currentControllerIndex(ROOTCTL_NO_MODECTL_SELECTED),
     _modeSelectionPresenter(modeSelectionPresenter)
 {
 
@@ -19,6 +19,7 @@ MainController::~MainController()
         delete node;
     }
     _modeControllers.clear();
+    _currentControllerIndex = ROOTCTL_NO_MODECTL_SELECTED;
 }
 
 
@@ -34,7 +35,7 @@ void MainController::addChildModeController(ModeDescription * controllerInfo, Mo
     node->controllerInfo = controllerInfo;
     node->controllerInstance = controller;    
     _modeControllers.push_back(node);
-    if ((controllerInfo->flags & MODE_INFO_FLAG_DEFAULT) == MODE_INFO_FLAG_DEFAULT) {
+    if ((controllerInfo->flags & MODEDESCR_FLAG_DEFAULTMODE) == MODEDESCR_FLAG_DEFAULTMODE) {
         _defaultControllerIndex = _modeControllers.size() - 1;
     }
 }

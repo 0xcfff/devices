@@ -1,5 +1,5 @@
 #include "idle-processor.h"
-#include "Sleep.xbm"
+#include "xbm/Sleep.xbm"
 
 IdleProcessor::IdleProcessor(Display & view):
     _view(view)

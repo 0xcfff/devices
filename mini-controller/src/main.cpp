@@ -12,11 +12,14 @@
 
 #include "dacha1_network.h"
 #include "pump_messages.h"
-#include "PumpDisabled.xbm"
 
 #include "display.h"
 #include "idle-processor.h"
 #include "main-controller.h"
+#include "waterpump-controller.h"
+#include "idle-controller.h"
+
+#include "modes-images.h"
 
 #define PIN_RF_CE D3
 #define PIN_RF_CSN D8
@@ -44,10 +47,22 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
 
 PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
-Display mainView(&u8g2);
-IdleProcessor idleProcessor(mainView);
-ModeSelectorPresenter modeSelectionPresenter(&mainView);
-MainController buttonsProcessor(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);
+Display display(&u8g2);
+IdleProcessor idleProcessor(display);
+ModeSelectorPresenter modeSelectionPresenter(&display);
+MainController mainController(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);
+IdleController idleController(&display);
+
+WaterPumpView waterPumpView(&display);
+WaterPumpController waterPumpController(&waterPumpView, &radio);
+ModeDescription waterPumpControlMode = {
+  .modeName = "Water Pump",
+  .flags = MODEDESCR_FLAG_DEFAULTMODE,
+  .splashScreenXBM = PumpDisabled_bits,
+  .splashWidth = PumpDisabled_width,
+  .splashHeight = PumpDisabled_height
+};
+
 
 ICACHE_RAM_ATTR void detectsButtons() {
   Serial.println("Click Detected!!!");
@@ -87,9 +102,12 @@ void setup() {
     Wire.setClock(100000L);
     pcf8574.begin();
     pcf8574.write8(0);
-    u8g2.begin();
+    //u8g2.begin();
 
     attachInterrupt(digitalPinToInterrupt(PIN_PCF8574_INTERRUPT), detectsButtons, CHANGE);
+
+    display.begin();
+    mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
     
     // blink
     digitalWrite(LED_BUILTIN, HIGH);
@@ -252,9 +270,15 @@ void loop() {
 
     }
 
-    u8g2.clearBuffer();
-    buttonsProcessor.handle();
-    u8g2.sendBuffer();
+    // u8g2.clearBuffer();
+    // mainController.handle();
+    // u8g2.sendBuffer();
+
+    mainController.handle();
+
+    if (display.isDirty()){
+      display.flush();
+    }
 
     // u8g2.clearBuffer();
     // drawLogo();
