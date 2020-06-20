@@ -1,4 +1,4 @@
-#include "main-controller.h"
+#include "navigation-controller.h"
 
 MainController::MainController(uint8_t modePin, uint8_t confirmPin, uint8_t cancelPin, ModeSelectorPresenter * modeSelectionPresenter) :
     _modePin(modePin),

@@ -15,7 +15,7 @@
 
 #include "display.h"
 #include "idle-processor.h"
-#include "main-controller.h"
+#include "navigation-controller.h"
 #include "waterpump-controller.h"
 #include "idle-controller.h"
 

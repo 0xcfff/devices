@@ -1,11 +1,11 @@
-#ifndef _MAIN_CONTROLLER_H_
-#define _MAIN_CONTROLLER_H_
+#ifndef _NAVIGATION_CONTROLLER_H_
+#define _NAVIGATION_CONTROLLER_H_
 
 #include <stdint.h>
 #include <vector>
 
 #include "mode-controller.h"
-#include "mode-selector-presenter.h"
+#include "navigation-view.h"
 
 enum ButttonsProcessingResult : uint8_t {
     PROCESSOR_HANDLE_RESULT_SUCCESS     = 1,
@@ -42,4 +42,4 @@ class MainController{
 };
 
 
-#endif // _MAIN_CONTROLLER_H_
+#endif // _NAVIGATION_CONTROLLER_H_

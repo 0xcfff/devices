@@ -1,5 +1,5 @@
-#ifndef _MODE_SELECTOR_PRESENTER_H_
-#define _MODE_SELECTOR_PRESENTER_H_
+#ifndef _NAVIGATION_VIEW_H_
+#define _NAVIGATION_VIEW_H_
 
 #include <stdint.h>
 
@@ -27,4 +27,4 @@ class ModeSelectorPresenter {
         Display * _display;
 };
 
-#endif  // _MODE_SELECTOR_PRESENTER_H_
+#endif  // _NAVIGATION_VIEW_H_

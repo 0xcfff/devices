@@ -1,4 +1,4 @@
-#include "mode-selector-presenter.h"
+#include "navigation-view.h"
 
 ModeSelectorPresenter::ModeSelectorPresenter(Display * view):
     _display(view)
