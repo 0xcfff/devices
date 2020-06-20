@@ -4,22 +4,11 @@
 #include <stdint.h>
 
 #include "display.h"
+#include "navigation-model.h"
 
-#define MODEDESCR_FLAG_DEFAULTMODE 1
-#define MODEDESCR_FLAG_USEXBMP     2
-#define MODEDESCR_FLAG_USEPSTR     4
-
-struct ModeDescription {
-    const char * modeName;
-    uint8_t flags;
-    const uint8_t * splashScreenXBM;
-    uint8_t splashWidth;
-    uint8_t splashHeight;
-};
-
-class ModeSelectorPresenter {
+class NavigationView {
     public:
-        ModeSelectorPresenter(Display * display);
+        NavigationView(Display * display);
 
         bool drawModeSplash(ModeDescription * modeDescriptor);
 

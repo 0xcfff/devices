@@ -49,7 +49,7 @@ PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
 Display display(&u8g2);
 IdleProcessor idleProcessor(display);
-ModeSelectorPresenter modeSelectionPresenter(&display);
+NavigationView modeSelectionPresenter(&display);
 MainController mainController(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);
 IdleController idleController(&display);
 

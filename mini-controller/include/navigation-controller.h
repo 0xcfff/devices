@@ -2,32 +2,24 @@
 #define _NAVIGATION_CONTROLLER_H_
 
 #include <stdint.h>
+
 #include <vector>
+#include <utility>
 
 #include "mode-controller.h"
+#include "navigation-model.h"
 #include "navigation-view.h"
-
-enum ButttonsProcessingResult : uint8_t {
-    PROCESSOR_HANDLE_RESULT_SUCCESS     = 1,
-    PROCESSOR_HANDLE_RESULT_ERROR       = 0,
-    PROCESSOR_HANDLE_RESULT_IDLE        = 2
-};
 
 #define ROOTCTL_NO_MODECTL_SELECTED     0xFF
 
 
 class MainController{
-    private:
-        struct ModeControllerNode {
-            ModeDescription * controllerInfo;
-            ModeController * controllerInstance;
-        };
 
     public:
-        MainController(uint8_t modePin, uint8_t confirmPin, uint8_t cancelPin, ModeSelectorPresenter * modeSelectionPresenter);
+        MainController(uint8_t modePin, uint8_t confirmPin, uint8_t cancelPin, NavigationView * view, std::vector<std::pair<ModeDescription *, ModeController *>> * childControllers = nullptr);
         ~MainController();
 
-        ButttonsProcessingResult handle();
+        bool handle();
 
         void addChildModeController(ModeDescription * controllerInfo, ModeController * controller);
 
@@ -37,8 +29,8 @@ class MainController{
         uint8_t _cancelPin;
         uint8_t _defaultControllerIndex;
         uint8_t _currentControllerIndex;
-        std::vector<ModeControllerNode*> _modeControllers;
-        ModeSelectorPresenter * _modeSelectionPresenter;
+        std::vector<std::pair<ModeDescription *, ModeController *>> _modeControllers;
+        NavigationView * _view;
 };
 
 
