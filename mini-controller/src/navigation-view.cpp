@@ -6,7 +6,7 @@ NavigationView::NavigationView(Display * view):
 
 }
 
-bool NavigationView::drawModeSplash(ModeDescription * modeDescriptor){
+bool NavigationView::drawModeSplash(NavigationTargetDescriptor * modeDescriptor){
     _display->drawImageView(
         modeDescriptor->splashWidth,
         modeDescriptor->splashHeight,

@@ -10,7 +10,7 @@ class NavigationView {
     public:
         NavigationView(Display * display);
 
-        bool drawModeSplash(ModeDescription * modeDescriptor);
+        bool drawModeSplash(NavigationTargetDescriptor * modeDescriptor);
 
     private:
         Display * _display;

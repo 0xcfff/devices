@@ -1,16 +1,15 @@
 #include "navigation-controller.h"
 
-MainController::MainController(uint8_t modePin, uint8_t confirmPin, uint8_t cancelPin, NavigationView * modeSelectionPresenter, std::vector<std::pair<ModeDescription *, ModeController *>> * childControllers) :
+MainController::MainController(uint8_t modePin, uint8_t confirmPin, uint8_t cancelPin, NavigationView * modeSelectionPresenter, std::vector<std::pair<NavigationTargetDescriptor *, ModeController *>> * childControllers) :
     _modePin(modePin),
     _confirmPin(confirmPin),
     _cancelPin(cancelPin),
-    _defaultControllerIndex(0),
-    _currentControllerIndex(ROOTCTL_NO_MODECTL_SELECTED),
     _view(modeSelectionPresenter)
 {
     if (childControllers != nullptr) {
-        for(int i = 0; i < childControllers->size(); i++) {
-            _modeControllers.push_back(childControllers->at(i));
+        for(int i = 0; i < (int)childControllers->size(); i++) {
+            std::pair<NavigationTargetDescriptor*, ModeController*> pair = childControllers->at(i);
+            addChildModeController(pair.first, pair.second);
         }
     }
 }
@@ -18,7 +17,7 @@ MainController::MainController(uint8_t modePin, uint8_t confirmPin, uint8_t canc
 MainController::~MainController()
 {
     _modeControllers.clear();
-    _currentControllerIndex = ROOTCTL_NO_MODECTL_SELECTED;
+    _model.clear();
 }
 
 
@@ -27,10 +26,8 @@ bool MainController::handle(){
     return true;
 }
 
-void MainController::addChildModeController(ModeDescription * controllerInfo, ModeController * controller){
-    std::pair<ModeDescription*, ModeController*> pair = std::pair<ModeDescription*, ModeController*>(controllerInfo, controller);
-    _modeControllers.push_back(pair);
-    if ((controllerInfo->flags & MODEDESCR_FLAG_DEFAULTMODE) == MODEDESCR_FLAG_DEFAULTMODE) {
-        _defaultControllerIndex = _modeControllers.size() - 1;
-    }
+void MainController::addChildModeController(NavigationTargetDescriptor * controllerInfo, ModeController * controller){
+    
+    uint8_t modeIndex = _model.addTargetDescriptor(controllerInfo);
+    _modeControllers[modeIndex] = controller;
 }

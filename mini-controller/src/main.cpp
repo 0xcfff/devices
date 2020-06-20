@@ -55,7 +55,7 @@ IdleController idleController(&display);
 
 WaterPumpView waterPumpView(&display);
 WaterPumpController waterPumpController(&waterPumpView, &radio);
-ModeDescription waterPumpControlMode = {
+NavigationTargetDescriptor waterPumpControlMode = {
   .modeName = "Water Pump",
   .flags = MODEDESCR_FLAG_DEFAULTMODE,
   .splashScreenXBM = PumpDisabled_bits,
