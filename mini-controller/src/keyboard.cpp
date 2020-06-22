@@ -24,7 +24,7 @@ Keyboard::~Keyboard(){
 bool Keyboard::begin(){
     bool result = false;
     if (!IS_FLAG_SET(KBD_STATE_INIT, _stateFlags)) {
-        attachInterruptHandler();
+        //attachInterruptHandler();
         SET_FLAG(KBD_STATE_INIT, _stateFlags);
         result = true;
     }
@@ -34,7 +34,7 @@ bool Keyboard::begin(){
 bool Keyboard::end(){
     bool result = false;
     if (IS_FLAG_SET(KBD_STATE_INIT, _stateFlags)) {
-        detachInterruptHandler();
+        //detachInterruptHandler();
         RESET_FLAG(KBD_STATE_INIT, _stateFlags);
         result = true;
     }

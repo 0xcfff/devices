@@ -8,7 +8,11 @@
 
 #include <U8g2lib.h>
 //#include <JC_Button.h>
+
+#include "arduino-pins.h"
+#include "pcf8574-pins.h"
 #include "button.h"
+
 
 #include "dacha1_network.h"
 #include "pump_messages.h"
@@ -27,9 +31,9 @@
 
 #define PIN_CONTROL_BUTTON D1 // TODO remove
 
-#define PIN_PCF8574_BUTTON_MODE     1
-#define PIN_PCF8574_BUTTON_OK       2
-#define PIN_PCF8574_BUTTON_CANCEL   4
+#define PIN_PCF8574_BUTTON_MODE     0
+#define PIN_PCF8574_BUTTON_OK       1
+#define PIN_PCF8574_BUTTON_CANCEL   2
 #define PIN_PCF8574_INTERRUPT       D4
 
 #define I2C_ADDRESS_DISPLAY 0x3C
@@ -42,11 +46,24 @@ uint8_t buffer[255];
 int cyclesCount = 0;
 
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
-Button controlButton(PIN_CONTROL_BUTTON, BUTTONCFG_ENABLE_HIGH);
+
+PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
+
+// Pins
+PCF8574DigitalPin modeButtonPin(&pcf8574, PIN_PCF8574_BUTTON_MODE, PCF8574DIGPINCFG_SOFTWAREINTERRUPTS_ENABLE);
+PCF8574DigitalPin okButtonPin(&pcf8574, PIN_PCF8574_BUTTON_OK, PCF8574DIGPINCFG_SOFTWAREINTERRUPTS_ENABLE);
+PCF8574DigitalPin cancelButtonPin(&pcf8574, PIN_PCF8574_BUTTON_CANCEL, PCF8574DIGPINCFG_SOFTWAREINTERRUPTS_ENABLE);
+ArduinoDigitalPin pcf8574InterruptPin(PIN_PCF8574_INTERRUPT, ARDUINODIGPINMODE_UNDEFINED, ARDUINODIGPINCFG_HARDWAREINTERRUPTS_ENABLE);
+
+// Buttons
+Button modeButton(&modeButtonPin, BUTTONCFG_ENABLE_HIGH | BUTTONCFG_ATTACHPININTERRUPT);
+Button okButton(&okButtonPin, BUTTONCFG_ENABLE_HIGH | BUTTONCFG_ATTACHPININTERRUPT);
+Button cancelButton(&cancelButtonPin, BUTTONCFG_ENABLE_HIGH | BUTTONCFG_ATTACHPININTERRUPT);
+
+//Button controlButton(PIN_CONTROL_BUTTON, BUTTONCFG_ENABLE_HIGH);
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
 
-PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
 Display display(&u8g2);
 Keyboard keyboard(&pcf8574, PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, PIN_PCF8574_INTERRUPT);
@@ -66,8 +83,12 @@ NavigationTargetDescriptor waterPumpControlMode = {
 };
 
 
-ICACHE_RAM_ATTR void detectsButtons() {
+ICACHE_RAM_ATTR void detectsButtons(DigitalPin* pin) {
   Serial.println("Click Detected!!!");
+
+  modeButtonPin.riseInterrupt();
+  okButtonPin.riseInterrupt();
+  cancelButtonPin.riseInterrupt();
   //ESP.restart();
 }
 
@@ -98,13 +119,20 @@ void setup() {
 
     radio.printDetails();
 
-    controlButton.begin();
+    //controlButton.begin();
 
     Wire.begin();
     Wire.setClock(100000L);
     pcf8574.begin();
     pcf8574.write8(0);
     //u8g2.begin();
+
+    modeButton.begin();
+    okButton.begin();
+    cancelButton.begin();
+
+    std::function<void(DigitalPin*)> handler = detectsButtons;
+    pcf8574InterruptPin.attachInterruptHandler(handler, CHANGE);
 
     //attachInterrupt(digitalPinToInterrupt(PIN_PCF8574_INTERRUPT), detectsButtons, CHANGE);
 
