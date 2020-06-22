@@ -14,6 +14,7 @@
 #include "pump_messages.h"
 
 #include "display.h"
+#include "keyboard.h"
 #include "idle-processor.h"
 #include "navigation-controller.h"
 #include "waterpump-controller.h"
@@ -48,6 +49,7 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
 PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
 Display display(&u8g2);
+Keyboard keyboard(&pcf8574, PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, PIN_PCF8574_INTERRUPT);
 IdleProcessor idleProcessor(display);
 NavigationView modeSelectionPresenter(&display);
 MainController mainController(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);
@@ -104,10 +106,12 @@ void setup() {
     pcf8574.write8(0);
     //u8g2.begin();
 
-    attachInterrupt(digitalPinToInterrupt(PIN_PCF8574_INTERRUPT), detectsButtons, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(PIN_PCF8574_INTERRUPT), detectsButtons, CHANGE);
 
     display.begin();
     mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
+
+    keyboard.begin();
     
     // blink
     digitalWrite(LED_BUILTIN, HIGH);
