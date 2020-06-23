@@ -11,6 +11,8 @@
 
 class DigitalPin {
     public:
+
+        // TODO: add pin name property and log it
         virtual uint8_t supportedFeatures() = 0;
         virtual bool digitalRead() = 0;
         virtual bool digitalWrite(bool isHigh) = 0;

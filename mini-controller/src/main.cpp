@@ -87,8 +87,8 @@ ICACHE_RAM_ATTR void detectsButtons(DigitalPin* pin) {
   Serial.println("Click Detected!!!");
 
   modeButtonPin.riseInterrupt();
-  okButtonPin.riseInterrupt();
-  cancelButtonPin.riseInterrupt();
+  //okButtonPin.riseInterrupt();
+  //cancelButtonPin.riseInterrupt();
   //ESP.restart();
 }
 
@@ -333,6 +333,11 @@ void loop() {
     //     Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
     //     Serial.println();
     // }
+
+    modeButton.tick();
+    LOG_INFOF("Mode Button: %i\n", (int)modeButton.getButtonAction());
+    //LOG_INFOF("Ok Button: %i\n", (int)okButton.getButtonAction());
+    //LOG_INFOF("Cancel Button: %i\n", (int)cancelButton.getButtonAction());
 
     delay(200);
 }
