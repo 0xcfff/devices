@@ -20,6 +20,7 @@ class PCF8574DigitalPin : public DigitalPin{
     public:
         PCF8574DigitalPin(PCF857x * pcf8574, uint8_t pinNumber, uint8_t configFlags);
 
+        std::string displayName() override;
         uint8_t supportedFeatures() override;
         bool digitalRead() override;
         bool digitalWrite(bool isHigh) override;

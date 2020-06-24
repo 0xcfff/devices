@@ -5,6 +5,18 @@
 
 #include "pins.h"
 
+#ifdef ARDUINO
+
+#include <Arduino.h>
+
+#define IRQHANDLER ICACHE_RAM_ATTR
+
+#else
+
+#define IRQHANDLER 
+
+#endif
+
 enum ButtonChange{
     BUTTON_CHANGE_NONE                      = 0x00,
     BUTTON_CHANGE_PRESSED                   = 0x01,
@@ -58,7 +70,7 @@ class Button{
     private:
         void refreshState(bool isInterrupt);
 
-        ICACHE_RAM_ATTR void onInterrupt(DigitalPin * pin);
+        IRQHANDLER void onInterrupt(DigitalPin * pin);
 
 
     private:

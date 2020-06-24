@@ -6,15 +6,20 @@
 #include <map>
 #include <utility>
 
+#include "button.h"
 #include "mode-controller.h"
 #include "navigation-model.h"
 #include "navigation-view.h"
+
+#define NAVCONTROLLERSTATE_EMPTY                 0x00
+#define NAVCONTROLLERSTATE_INITIALDRAWDONE       0x01
+#define NAVCONTROLLERSTATE_MODEENTERED           0x02
 
 
 class MainController{
 
     public:
-        MainController(uint8_t modePin, uint8_t confirmPin, uint8_t cancelPin, NavigationView * view, std::vector<std::pair<NavigationTargetDescriptor *, ModeController *>> * childControllers = nullptr);
+        MainController(Button * modeButton, Button * confirmButton, Button * cancelButton, NavigationView * view, std::vector<std::pair<NavigationTargetDescriptor *, ModeController *>> * childControllers = nullptr);
         ~MainController();
 
         bool handle();
@@ -22,12 +27,16 @@ class MainController{
         void addChildModeController(NavigationTargetDescriptor * controllerInfo, ModeController * controller);
 
     private:
-        uint8_t _modePin;
-        uint8_t _confirmPin;
-        uint8_t _cancelPin;
+        bool redrawView();
+
+    private:
+        Button * _modeButton;
+        Button * _confirmButton;
+        Button * _cancelButton;
         std::map<uint8_t, ModeController *> _modeControllers;
         NavigationView * _view;
         NavigationModel _model;
+        uint8_t _stateFlags;
 };
 
 

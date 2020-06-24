@@ -26,6 +26,7 @@ class ArduinoDigitalPin : public DigitalPin{
     public:
         ArduinoDigitalPin(uint8_t pinNumber, uint8_t pinMode = ARDUINODIGPINMODE_UNDEFINED, uint8_t configFlags = ARDUINODIGPINCFG_EMPTY);
 
+        std::string displayName();
         uint8_t supportedFeatures() override;
         bool digitalRead() override;
         bool digitalWrite(bool isHigh) override;

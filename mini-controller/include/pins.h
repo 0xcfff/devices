@@ -1,7 +1,9 @@
 #ifndef _PINS_H_
 #define _PINS_H_
 
+#include <string>
 #include <utility>
+#include <functional>
 
 #include <stdint.h>
 
@@ -13,6 +15,7 @@ class DigitalPin {
     public:
 
         // TODO: add pin name property and log it
+        virtual std::string displayName() = 0;
         virtual uint8_t supportedFeatures() = 0;
         virtual bool digitalRead() = 0;
         virtual bool digitalWrite(bool isHigh) = 0;

@@ -21,6 +21,11 @@ ArduinoDigitalPin::ArduinoDigitalPin(uint8_t pinNumber, uint8_t pinMode, uint8_t
 }
 
 
+std::string ArduinoDigitalPin::displayName(){
+    char buff[8];
+    snprintf(buff, sizeof(buff), "pin:%i", _pinNumber);
+}
+
 uint8_t ArduinoDigitalPin::supportedFeatures(){
     return PIN_FEATURE_DIGITALREAD 
         | (IS_FLAG_SET(ARDUINODIGPINSTATE_SUPPORTSDIRECTWRITE, _stateFlags) ? PIN_FEATURE_DIGITALWRITE : 0 )

@@ -23,6 +23,10 @@ class NavigationModel {
     public:
         NavigationModel();
 
+        uint8_t getCurrentNavItemIndex();
+        NavigationTargetDescriptor * getCurrentNavItemDescriptor();
+        bool navigateNextNavItem();
+
         /**
          * Resets state of the model, but does not clear internal data
          * @return {void}
@@ -50,7 +54,6 @@ class NavigationModel {
         uint8_t _defaultTargetIndex;
 
         uint8_t _currentTargetIndex;
-        NavigationTargetDescriptor * _currentTarget;
         bool _isTargetEntered;
 
 };

@@ -11,6 +11,11 @@ PCF8574DigitalPin::PCF8574DigitalPin(PCF857x * pcf8574, uint8_t pinNumber, uint8
 
 }
 
+std::string PCF8574DigitalPin::displayName(){
+    char buff[12];
+    snprintf(buff, sizeof(buff), "pcf8574:%i", _pinNumber);
+    return buff;
+}
 
 uint8_t PCF8574DigitalPin::supportedFeatures(){
     return PIN_FEATURE_DIGITALREAD 

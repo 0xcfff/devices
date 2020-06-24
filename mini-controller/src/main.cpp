@@ -69,7 +69,7 @@ Display display(&u8g2);
 Keyboard keyboard(&pcf8574, PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, PIN_PCF8574_INTERRUPT);
 IdleProcessor idleProcessor(display);
 NavigationView modeSelectionPresenter(&display);
-MainController mainController(PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_PCF8574_BUTTON_CANCEL, &modeSelectionPresenter);
+MainController mainController(&modeButton, &okButton, &cancelButton, &modeSelectionPresenter);
 IdleController idleController(&display);
 
 WaterPumpView waterPumpView(&display);
@@ -87,8 +87,8 @@ ICACHE_RAM_ATTR void detectsButtons(DigitalPin* pin) {
   Serial.println("Click Detected!!!");
 
   modeButtonPin.riseInterrupt();
-  //okButtonPin.riseInterrupt();
-  //cancelButtonPin.riseInterrupt();
+  okButtonPin.riseInterrupt();
+  cancelButtonPin.riseInterrupt();
   //ESP.restart();
 }
 
@@ -137,6 +137,7 @@ void setup() {
     //attachInterrupt(digitalPinToInterrupt(PIN_PCF8574_INTERRUPT), detectsButtons, CHANGE);
 
     display.begin();
+    mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
     mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
 
     keyboard.begin();
@@ -281,26 +282,26 @@ void loop() {
         firstTime = false;
     }
 
-    uint8_t ios = pcf8574.read8();
-    Serial.printf("PCF State: %i\n", (int)ios);
-    if (ios > 0) {
-        isHighLighted = !isHighLighted;
-        digitalWrite(LED_BUILTIN, isHighLighted ? HIGH : LOW);
+    // uint8_t ios = pcf8574.read8();
+    // Serial.printf("PCF State: %i\n", (int)ios);
+    // if (ios > 0) {
+    //     isHighLighted = !isHighLighted;
+    //     digitalWrite(LED_BUILTIN, isHighLighted ? HIGH : LOW);
 
         
 
-        if (ios & 1) {
-            u8g2.userInterfaceSelectionList("Select Room", 2, main_list);
-        }
-        if (ios & 2) {
-            u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
-        }
-        if (ios & 4) {
-            u8g2.noDisplay();
-            radio.powerDown();
-        }
+    //     if (ios & 1) {
+    //         u8g2.userInterfaceSelectionList("Select Room", 2, main_list);
+    //     }
+    //     if (ios & 2) {
+    //         u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
+    //     }
+    //     if (ios & 4) {
+    //         u8g2.noDisplay();
+    //         radio.powerDown();
+    //     }
 
-    }
+    // }
 
     // u8g2.clearBuffer();
     // mainController.handle();

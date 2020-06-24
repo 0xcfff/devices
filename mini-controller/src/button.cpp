@@ -85,7 +85,7 @@ void Button::refreshState(bool isInterrupt){
         SET_FLAG_VALUE(BUTTONSTATE_INTERRUPTHANDELED, isInterrupt, _stateFlags);
 
         bool isPressed = _buttonPin->digitalRead() == BUTTONSIG_ENABLE;
-        LOG_INFOF("isPressed(in): %i, diff: %i, lastChanged: %lu, millis: %lu, isInterrupt: %i <--\n", (int)isPressed, (int)(millis() - _lastChangedMillis), _lastChangedMillis, millis(), (int)isInterrupt);
+        //LOG_INFOF("%s: isPressed(in): %i, diff: %i, lastChanged: %lu, millis: %lu, isInterrupt: %i <--\n", _buttonPin->displayName().c_str(), (int)isPressed, (int)(millis() - _lastChangedMillis), _lastChangedMillis, millis(), (int)isInterrupt);
         if (isPressed != IS_FLAG_SET(BUTTONSTATE_ISPRESSED, _stateFlags)){
             bool isChanged = true;
             // decode button release states
@@ -95,10 +95,10 @@ void Button::refreshState(bool isInterrupt){
                     RESET_FLAG(BUTTONSTATE_ISLONGPRESSED, _stateFlags);
                     isChanged = false;
                 } else if ((millis() - _lastClickMillis) < _doubleClickInterval) {
-                    LOG_INFOLN("DblClick (in)");
+                    //LOG_INFOLN("DblClick (in)");
                     SET_FLAG(BUTTONSTATE_ISDBLCLICK, _stateFlags);
                 } else {
-                    LOG_INFOLN("Click (in)");
+                    //LOG_INFOLN("Click (in)");
                     SET_FLAG(BUTTONSTATE_ISCLICK, _stateFlags);
                     _lastClickMillis = millis();
                 }
