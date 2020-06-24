@@ -78,9 +78,9 @@ WaterPumpController waterPumpController(&waterPumpView, &radio);
 NavigationTargetDescriptor waterPumpControlMode = {
   .modeName = "Water Pump",
   .flags = MODEDESCR_FLAG_DEFAULTMODE,
-  .splashScreenXBM = PumpDisabled_bits,
-  .splashWidth = PumpDisabled_width,
-  .splashHeight = PumpDisabled_height
+  .splashScreenXBM = Pump_bits,
+  .splashWidth = Pump_width,
+  .splashHeight = Pump_height
 };
 
 IdleController idleController(&display, IDLE_SPLASHDISPLAY_MSEC);
@@ -263,7 +263,7 @@ void drawURL(void)
     u8g2.setCursor(1,54);
     u8g2.print("Привет!");
 
-    u8g2.drawXBM(96, 16, PumpDisabled_width, PumpDisabled_height, PumpDisabled_bits);        
+    //u8g2.drawXBM(96, 16, PumpDisabled_width, PumpDisabled_height, PumpDisabled_bits);        
   }
 #endif
 }
