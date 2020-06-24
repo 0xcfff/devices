@@ -16,6 +16,9 @@ class Display {
         bool isDirty();
         bool flush();
 
+        bool turnOff();
+        bool turnOn();
+
     private:
         U8G2 * _display;
         bool _isDirty;

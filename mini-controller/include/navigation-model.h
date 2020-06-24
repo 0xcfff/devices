@@ -5,9 +5,10 @@
 
 #include <vector>
 
-#define MODEDESCR_FLAG_DEFAULTMODE          1
-#define MODEDESCR_FLAG_USEXBMP              2
-#define MODEDESCR_FLAG_USEPSTR              4
+#define MODEDESCR_FLAG_NONE                 0x00
+#define MODEDESCR_FLAG_DEFAULTMODE          0x01
+#define MODEDESCR_FLAG_USEXBMP              0x02
+#define MODEDESCR_FLAG_USEPSTR              0x04
 
 #define NAVMODEL_NO_MODECTL_SELECTED        0xFF
 

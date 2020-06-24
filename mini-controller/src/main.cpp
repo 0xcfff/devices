@@ -39,6 +39,8 @@
 #define I2C_ADDRESS_DISPLAY 0x3C
 #define I2C_ADDRESS_PCF8574 0x20
 
+#define IDLE_SPLASHDISPLAY_MSEC 100
+
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
 //const char * testMessage = "test message";
@@ -70,7 +72,6 @@ Keyboard keyboard(&pcf8574, PIN_PCF8574_BUTTON_MODE, PIN_PCF8574_BUTTON_OK, PIN_
 IdleProcessor idleProcessor(display);
 NavigationView modeSelectionPresenter(&display);
 MainController mainController(&modeButton, &okButton, &cancelButton, &modeSelectionPresenter);
-IdleController idleController(&display);
 
 WaterPumpView waterPumpView(&display);
 WaterPumpController waterPumpController(&waterPumpView, &radio);
@@ -80,6 +81,15 @@ NavigationTargetDescriptor waterPumpControlMode = {
   .splashScreenXBM = PumpDisabled_bits,
   .splashWidth = PumpDisabled_width,
   .splashHeight = PumpDisabled_height
+};
+
+IdleController idleController(&display, IDLE_SPLASHDISPLAY_MSEC);
+NavigationTargetDescriptor idleControllerMode = {
+  .modeName = "Sleep",
+  .flags = MODEDESCR_FLAG_NONE,
+  .splashScreenXBM = Sleep_bits,
+  .splashWidth = Sleep_width,
+  .splashHeight = Sleep_height
 };
 
 
@@ -138,7 +148,7 @@ void setup() {
 
     display.begin();
     mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
-    mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
+    mainController.addChildModeController(&idleControllerMode, &idleController);
 
     keyboard.begin();
     
@@ -262,7 +272,7 @@ bool isHighLighted = false;
 
 const char * main_list = "Living Room\nBedroom\nBedtime\nWatching TV\nGoing Out!";
 
-bool firstTime = true;
+//bool firstTime = true;
 
 void loop() {
 //  bool written = radio.write(testMessage, 12);
@@ -274,13 +284,13 @@ void loop() {
 
     //u8g2.clearBuffer();
 
-    if (firstTime) {
-        u8g2.clearBuffer();
-        drawLogo();
-        drawURL();
-        u8g2.sendBuffer();        
-        firstTime = false;
-    }
+    // if (firstTime) {
+    //     u8g2.clearBuffer();
+    //     drawLogo();
+    //     drawURL();
+    //     u8g2.sendBuffer();        
+    //     firstTime = false;
+    // }
 
     // uint8_t ios = pcf8574.read8();
     // Serial.printf("PCF State: %i\n", (int)ios);
@@ -335,10 +345,5 @@ void loop() {
     //     Serial.println();
     // }
 
-    modeButton.tick();
-    LOG_INFOF("Mode Button: %i\n", (int)modeButton.getButtonAction());
-    //LOG_INFOF("Ok Button: %i\n", (int)okButton.getButtonAction());
-    //LOG_INFOF("Cancel Button: %i\n", (int)cancelButton.getButtonAction());
-
-    delay(200);
+     delay(200);
 }

@@ -31,6 +31,7 @@ void Display::drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, 
         _display->setCursor(x,y);
         _display->print(label);
         occupiedHeight = textHeight;
+        LOG_INFOF("Drawing Label: %s", label);
     }
 
     u8g2_uint_t availableHeight = displayHeight - occupiedHeight - VIEW_AREA_Y;
@@ -48,6 +49,15 @@ void Display::begin(){
 
 bool Display::isDirty(){
     return _isDirty;
+}
+
+bool Display::turnOff(){
+    _display->setPowerSave(1);
+    return true;
+}
+bool Display::turnOn(){
+    _display->setPowerSave(0);
+    return true;
 }
 
 bool Display::flush(){
