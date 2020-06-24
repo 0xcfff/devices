@@ -3,5 +3,6 @@
 
 #include "xbm/Sleep.xbm"
 #include "xbm/Pump.xbm"
+#include "xbm/OTA.xbm"
 
 #endif  // _XBM_IMAGES_H_

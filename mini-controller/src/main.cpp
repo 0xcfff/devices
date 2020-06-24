@@ -92,6 +92,14 @@ NavigationTargetDescriptor idleControllerMode = {
   .splashHeight = Sleep_height
 };
 
+NavigationTargetDescriptor otaControllerMode = {
+  .modeName = "Update Firmware",
+  .flags = MODEDESCR_FLAG_NONE,
+  .splashScreenXBM = OTA_bits,
+  .splashWidth = OTA_width,
+  .splashHeight = OTA_height
+};
+
 
 ICACHE_RAM_ATTR void detectsButtons(DigitalPin* pin) {
   Serial.println("Click Detected!!!");
@@ -149,6 +157,7 @@ void setup() {
     display.begin();
     mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
     mainController.addChildModeController(&idleControllerMode, &idleController);
+    mainController.addChildModeController(&otaControllerMode, &idleController);
 
     keyboard.begin();
     
