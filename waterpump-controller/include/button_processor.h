@@ -4,8 +4,8 @@
 #include <JC_Button.h>
 
 #include "led.h"
-#include "ota_updater.h"
-#include "wifi_ap.h"
+#include "ota-updater.h"
+#include "wifi-ap.h"
 
 
 #define CTLBTNPROCSTATE_EMPTY             0x00

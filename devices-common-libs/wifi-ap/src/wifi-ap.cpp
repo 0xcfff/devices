@@ -4,7 +4,7 @@
 
 #include <macro-flags.h>
 
-#include "wifi_ap.h"
+#include "wifi-ap.h"
 
 WiFiAP::WiFiAP(const char * apName) :
     _stateFlags(WIFIAP_STATE_EMPTY)

@@ -1,7 +1,7 @@
 #include <tnlog.h>
 #include <macro-flags.h>
 
-#include "ota_updater.h"
+#include "ota-updater.h"
 
 OtaUpdater::OtaUpdater():
     _stateFlags(OTASTATE_EMPTY),

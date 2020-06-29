@@ -14,8 +14,8 @@
 
 #include "led.h"
 #include "relay.h"
-#include "wifi_ap.h"
-#include "ota_updater.h"
+#include "wifi-ap.h"
+#include "ota-updater.h"
 #include "commands_processor.h"
 #include "button_processor.h"
 #include "dacha1_network.h"
