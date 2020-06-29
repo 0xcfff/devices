@@ -31,5 +31,14 @@ void OtaView::drawModel(OtaModel * model) {
             (int)((model->ownIP >> 0) & 0xFF));
 
         rawDisplay->print(buff);
+
+        rawDisplay->setCursor(10,32);
+
+        sprintf(buff, "%i", (int)model->otaState);
+        rawDisplay->print(buff);
+
+        rawDisplay->setCursor(10,48);
+        rawDisplay->print(model->apName);
+
     }
 }

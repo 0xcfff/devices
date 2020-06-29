@@ -36,7 +36,7 @@ bool WiFiAP::setApName(const char * apName){
 }
 
 uint32_t WiFiAP::getOwnIP(){
-    return WiFi.localIP().v4();
+    return WiFi.softAPIP().v4();
 }
 
 bool WiFiAP::begin(){

@@ -166,6 +166,8 @@ void setup() {
     mainController.addChildModeController(&otaControllerMode, &otaController);
 
     keyboard.begin();
+    otaUpdater.begin();
+    wifiAp.begin();
     
     // blink
     digitalWrite(LED_BUILTIN, HIGH);
