@@ -2,7 +2,7 @@
 #include <strings.h>
 #include <ESP8266WiFi.h>
 
-#include "shared_macroses.h"
+#include <macro-flags.h>
 
 #include "wifi_ap.h"
 

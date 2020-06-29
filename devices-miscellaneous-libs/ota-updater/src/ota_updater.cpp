@@ -1,6 +1,5 @@
 #include <tnlog.h>
-
-#include "shared_macroses.h"
+#include <macro-flags.h>
 
 #include "ota_updater.h"
 

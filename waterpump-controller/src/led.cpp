@@ -1,6 +1,12 @@
-#include "shared_macroses.h"
+#include <macro-flags.h>
 
 #include "led.h"
+
+#ifdef ARDUINO
+
+#include <Arduino.h>
+
+#endif
 
 #define LEDSIG_ENABLE      ((_configFlags & LEDCFG_ENABLE_HIGH) == LEDCFG_ENABLE_HIGH ? HIGH : LOW)
 #define LEDSIG_DISABLE     ((_configFlags & LEDCFG_ENABLE_HIGH) == LEDCFG_ENABLE_HIGH ? LOW : HIGH)
