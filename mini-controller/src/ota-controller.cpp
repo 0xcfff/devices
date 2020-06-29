@@ -15,7 +15,7 @@ bool OtaController::activate() {
     if (success) {
         _model.apName = _wifiAp->getApName();
         _model.ownIP = _wifiAp->getOwnIP();
-        _model.setState(OTAMODELSTATE_ENABLED, "Waiting connection...");
+        _model.setState(OTAMODELSTATE_WAITING, "Waiting connection...");
     } else {
         _model.setState(OTAMODELSTATE_ERROR, "Can't enable OTA");
     }
@@ -37,9 +37,11 @@ bool OtaController::deactivate() {
 bool OtaController::handleTick() {
 
     // TODO: read OTA progress, display progress
-
+    // TODO: read OtaUpdater->onStartOTA
+    // TODO: read OtaUpdater->progress
+    // TODO: read OtaUpdater->lastActivity
 }
 
 ModeControllerHandleUserInputResult OtaController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) {
-
+    // TODO: if user click cancel, check OTA status and if no blocking state, then exit OTA controller
 }

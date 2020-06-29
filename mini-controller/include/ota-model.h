@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-#define OTAMODELSTATE_NONE                  0x00
-#define OTAMODELSTATE_ENABLED               0x01
-#define OTAMODELSTATE_INPROGRESS            0x02
-#define OTAMODELSTATE_UPDATECOMPLETED       0x04
-#define OTAMODELSTATE_ERROR                 0x08
-#define OTAMODELSTATE_DISABLED              0x00
+#define OTAMODELSTATE_NONE                  0
+#define OTAMODELSTATE_WAITING               1
+#define OTAMODELSTATE_INPROGRESS            2
+#define OTAMODELSTATE_UPDATECOMPLETED       3
+#define OTAMODELSTATE_DISABLED              4
+#define OTAMODELSTATE_ERROR                 0xFF
 
 
 
