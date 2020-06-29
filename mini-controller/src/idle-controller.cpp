@@ -1,5 +1,6 @@
+#include <macro-flags.h>
+
 #include "xbm/Sleep.xbm"
-#include "shared_macroses.h"
 #include "idle-controller.h"
 
 IdleController::IdleController(Display * view, uint16_t splashDisplayDurationMillis) :

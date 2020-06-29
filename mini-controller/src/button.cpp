@@ -1,6 +1,6 @@
-#include "Arduino.h"
-#include "shared_macroses.h"
-#include "tnlog.h"
+#include <Arduino.h>
+#include <macro-flags.h>
+#include <tnlog.h>
 
 #include "button.h"
 

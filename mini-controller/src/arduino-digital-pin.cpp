@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include <FunctionalInterrupt.h>
 
+#include <macro-flags.h>
+
 #include "arduino-digital-pin.h"
 
-#include "shared_macroses.h"
 
 
 ArduinoDigitalPin::ArduinoDigitalPin(uint8_t pinNumber, uint8_t pinMode, uint8_t configFlags):

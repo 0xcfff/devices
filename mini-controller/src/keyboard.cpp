@@ -1,8 +1,7 @@
 #include <utility>
 #include <FunctionalInterrupt.h>
 #include <tnlog.h>
-
-#include "shared_macroses.h"
+#include <macro-flags.h>
 
 #include "keyboard.h"
 

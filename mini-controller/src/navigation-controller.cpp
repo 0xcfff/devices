@@ -1,6 +1,5 @@
-#include "shared_macroses.h"
-
 #include <tnlog.h>
+#include <macro-flags.h>
 
 #include "navigation-controller.h"
 

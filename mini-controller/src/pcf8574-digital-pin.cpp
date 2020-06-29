@@ -1,4 +1,4 @@
-#include "shared_macroses.h"
+#include <macro-flags.h>
 
 #include "pcf8574-digital-pin.h"
 
