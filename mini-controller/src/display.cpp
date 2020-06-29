@@ -14,6 +14,11 @@ Display::Display(U8G2 * display) :
 
 }
 
+U8G2 * Display::getRawDisplay(){
+    _isDirty = true;
+    return _display;
+}
+
 void Display::drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label)
 {
     u8g2_uint_t displayWidth = _display->getWidth();

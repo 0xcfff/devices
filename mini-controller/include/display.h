@@ -13,6 +13,8 @@ class Display {
     
         void drawImageView(uint8_t width, uint8_t height, const uint8_t * xbm, const char * label);
 
+        U8G2 * getRawDisplay();
+
         bool isDirty();
         bool flush();
 

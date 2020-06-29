@@ -12,6 +12,9 @@ WiFiAP::WiFiAP(const char * apName) :
     setApName(_apName);
 }
 
+const char * WiFiAP::getApName(){
+    return _apName;
+}
 
 bool WiFiAP::setApName(const char * apName){
     bool result = true;
@@ -30,6 +33,10 @@ bool WiFiAP::setApName(const char * apName){
     }
 
     return result;
+}
+
+uint32_t WiFiAP::getOwnIP(){
+    return WiFi.localIP().v4();
 }
 
 bool WiFiAP::begin(){

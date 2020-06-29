@@ -37,6 +37,7 @@ class MainController{
         NavigationView * _view;
         NavigationModel _model;
         uint8_t _stateFlags;
+        ModeController * _currentController;
 };
 
 

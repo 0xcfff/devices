@@ -8,7 +8,8 @@ MainController::MainController(Button * modeButton, Button * confirmButton, Butt
     _confirmButton(confirmButton),
     _cancelButton(cancelButton),
     _view(modeSelectionPresenter),
-    _stateFlags(NAVCONTROLLERSTATE_EMPTY)
+    _stateFlags(NAVCONTROLLERSTATE_EMPTY),
+    _currentController(nullptr)
 {
     _model.clear();   
     if (childControllers != nullptr) {
@@ -46,16 +47,41 @@ bool MainController::handle(){
 
         LOG_INFOF("Buttons state: %i\n", (int)state);
 
+        auto modeButtonAction = _modeButton->getButtonAction();
+        auto confirmButtonAction = _confirmButton->getButtonAction();
+        auto cancelButtonAction = _cancelButton->getButtonAction();
+
         if (!IS_FLAG_SET(NAVCONTROLLERSTATE_MODEENTERED, _stateFlags)) {
-            auto modeButtonAction = _modeButton->getButtonAction();
             if (modeButtonChanged && modeButtonAction == BUTTON_ACTION_CLICK) {
                 LOG_INFOLN("Mode button click detected!");
                 if (_model.navigateNextNavItem()) {
                     redrawView();
                 }
             }
-        } else {
-
+            if (confirmButtonChanged && confirmButtonAction == BUTTON_ACTION_CLICK) {
+                LOG_INFOLN("Confirm button click detected!");
+                auto controllerIndex = _model.getCurrentNavItemIndex();
+                auto controller = _modeControllers.at(controllerIndex);
+                if (controller->activate()) {
+                    _currentController = controller;
+                    SET_FLAG(NAVCONTROLLERSTATE_MODEENTERED, _stateFlags);
+                }
+            }
+        } 
+        else
+        {
+            if (modeButtonChanged && modeButtonAction == BUTTON_ACTION_CLICK) {
+                LOG_INFOLN("Mode button click detected!");
+                _currentController->handleUserInput(PROCESSOR_BUTTON_MENU, PROCESSOR_BUTTON_ACTION_CLICK, state);
+            }
+            if (confirmButtonChanged && confirmButtonAction == BUTTON_ACTION_CLICK) {
+                LOG_INFOLN("Confirm button click detected!");
+                _currentController->handleUserInput(PROCESSOR_BUTTON_OK, PROCESSOR_BUTTON_ACTION_CLICK, state);
+            }
+            if (cancelButtonChanged && cancelButtonAction == BUTTON_ACTION_CLICK) {
+                LOG_INFOLN("Cancel button click detected!");
+                _currentController->handleUserInput(PROCESSOR_BUTTON_CANCEL, PROCESSOR_BUTTON_ACTION_CLICK, state);
+            }
         }
     }
 
@@ -65,7 +91,12 @@ bool MainController::handle(){
             SET_FLAG(NAVCONTROLLERSTATE_INITIALDRAWDONE, _stateFlags);
         }
     }
-    
+
+    if (IS_FLAG_SET(NAVCONTROLLERSTATE_MODEENTERED, _stateFlags)) {
+        // TODO: avoid calls immediately after the controller is activated
+        _currentController->handleTick();
+    }
+
     return true;
 }
 

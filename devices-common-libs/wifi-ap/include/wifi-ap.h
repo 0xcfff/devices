@@ -11,7 +11,10 @@ class WiFiAP {
     public:
         WiFiAP(const char * apName = nullptr);
 
+        const char * getApName();
         bool setApName(const char * apName = nullptr);
+
+        uint32_t getOwnIP();
 
         bool begin();
         bool end();

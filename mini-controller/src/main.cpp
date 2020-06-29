@@ -23,6 +23,7 @@
 #include "navigation-controller.h"
 #include "waterpump-controller.h"
 #include "idle-controller.h"
+#include "ota-controller.h"
 
 #include "modes-images.h"
 
@@ -92,6 +93,11 @@ NavigationTargetDescriptor idleControllerMode = {
   .splashHeight = Sleep_height
 };
 
+WiFiAP wifiAp;
+OtaUpdater otaUpdater;
+
+OtaView otaView(&display);
+OtaController otaController(&otaUpdater, &wifiAp, &otaView);
 NavigationTargetDescriptor otaControllerMode = {
   .modeName = "Update Firmware",
   .flags = MODEDESCR_FLAG_NONE,
@@ -157,7 +163,7 @@ void setup() {
     display.begin();
     mainController.addChildModeController(&waterPumpControlMode, &waterPumpController);
     mainController.addChildModeController(&idleControllerMode, &idleController);
-    mainController.addChildModeController(&otaControllerMode, &idleController);
+    mainController.addChildModeController(&otaControllerMode, &otaController);
 
     keyboard.begin();
     
