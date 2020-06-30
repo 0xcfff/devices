@@ -44,4 +44,5 @@ bool OtaController::handleTick() {
 
 ModeControllerHandleUserInputResult OtaController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) {
     // TODO: if user click cancel, check OTA status and if no blocking state, then exit OTA controller
+    // TODO: rework return type, return structure that combines action and event information, add ActionResult.RiseEvent, add handleEvent to all mode controllers
 }
