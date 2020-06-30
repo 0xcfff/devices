@@ -29,67 +29,6 @@ MainController::~MainController()
 
 bool MainController::handle(){
 
-    // check buttons changes from input driver
-    // in no button changes, check UI redraw is needed due to new ViewModel state
-    _modeButton->tick();
-    _confirmButton->tick();
-    _cancelButton->tick();
-
-    auto modeButtonChanged = _modeButton->isChanged();
-    auto confirmButtonChanged = _confirmButton->isChanged();
-    auto cancelButtonChanged = _cancelButton->isChanged();
-
-    if (modeButtonChanged || confirmButtonChanged || cancelButtonChanged) {
-        ModeControllerCommandButton state = (ModeControllerCommandButton)(PROCESSOR_BUTTON_NONE 
-            | (_modeButton->isPressed() ? PROCESSOR_BUTTON_MENU : 0) 
-            | (_confirmButton->isPressed() ? PROCESSOR_BUTTON_OK : 0)
-            | (_cancelButton->isPressed() ? PROCESSOR_BUTTON_CANCEL : 0)
-            );
-
-        LOG_INFOF("Buttons state: %i\n", (int)state);
-
-        auto modeButtonAction = _modeButton->getButtonAction();
-        auto confirmButtonAction = _confirmButton->getButtonAction();
-        auto cancelButtonAction = _cancelButton->getButtonAction();
-
-        if (_state == NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS) {
-            if (modeButtonChanged && modeButtonAction == BUTTON_ACTION_CLICK) {
-                LOG_INFOLN("Mode button click detected!");
-                if (_model.navigateNextNavItem()) {
-                    redrawView();
-                }
-            }
-            if (confirmButtonChanged && confirmButtonAction == BUTTON_ACTION_CLICK) {
-                LOG_INFOLN("Confirm button click detected!");
-                auto controllerIndex = _model.getCurrentNavItemIndex();
-                auto controller = _modeControllers.at(controllerIndex);
-                if (controller->activate()) {
-                    _currentController = controller;
-                    _state = NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER;
-                }
-            }
-        } 
-        else if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER)
-        {
-            if (modeButtonChanged && modeButtonAction == BUTTON_ACTION_CLICK) {
-                LOG_INFOLN("Mode button click detected!");
-                _currentController->handleUserInput(PROCESSOR_BUTTON_MENU, PROCESSOR_BUTTON_ACTION_CLICK, state);
-            }
-            if (confirmButtonChanged && confirmButtonAction == BUTTON_ACTION_CLICK) {
-                LOG_INFOLN("Confirm button click detected!");
-                _currentController->handleUserInput(PROCESSOR_BUTTON_OK, PROCESSOR_BUTTON_ACTION_CLICK, state);
-            }
-            if (cancelButtonChanged && cancelButtonAction == BUTTON_ACTION_CLICK) {
-                LOG_INFOLN("Cancel button click detected!");
-                auto result = _currentController->handleUserInput(PROCESSOR_BUTTON_CANCEL, PROCESSOR_BUTTON_ACTION_CLICK, state);
-                if (result.handleResult == PROCESSOR_RESULT_LEAVESTATE) {
-                    _currentController->deactivate();
-                    _state = NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS;
-                }
-            }
-        }
-    }
-
     // make sure initial drawing is performed
     if (!IS_FLAG_SET(NAVCONTROLLERSTATE_INITIALDRAWDONE, _stateFlags)) {
         if (redrawView()) {
@@ -97,13 +36,127 @@ bool MainController::handle(){
         }
     }
 
-    if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER) {
-        // TODO: avoid calls immediately after the controller is activated
+    // actualize input state
+    _modeButton->tick();
+    _confirmButton->tick();
+    _cancelButton->tick();
+
+    // process user input
+    HandleInputResult handleInputResult = processUserInput();
+
+
+    // tick nested controller if needed
+    if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER && handleInputResult != HANDLEINPUTRESULT_ENTEREDNESTEDCONTROLLER) {
+        // only call handleTick for nested controller if it was not entered on this cycle
         _currentController->handleTick();
     }
 
     return true;
 }
+
+MainController::HandleInputResult MainController::processUserInput()
+{
+    ModeControllerCommandButton state = (ModeControllerCommandButton)(PROCESSOR_BUTTON_NONE 
+        | (_modeButton->isPressed() ? PROCESSOR_BUTTON_MENU : 0) 
+        | (_confirmButton->isPressed() ? PROCESSOR_BUTTON_OK : 0)
+        | (_cancelButton->isPressed() ? PROCESSOR_BUTTON_CANCEL : 0)
+        );
+
+    HandleInputResult handleInputResult = HANDLEINPUTRESULT_NONE;
+    
+    if (_modeButton->isChanged()) {
+        handleInputResult = handleUserInput(PROCESSOR_BUTTON_MENU, translateButtonActionToMCButtonAction(_modeButton->getButtonAction()), state);
+    }
+    if (_confirmButton->isChanged()) {
+        handleInputResult = handleUserInput(PROCESSOR_BUTTON_OK, translateButtonActionToMCButtonAction(_confirmButton->getButtonAction()), state);
+    }
+    if (_cancelButton->isChanged()) {
+        handleInputResult = handleUserInput(PROCESSOR_BUTTON_CANCEL, translateButtonActionToMCButtonAction(_cancelButton->getButtonAction()), state);
+    }
+
+    return handleInputResult;
+}
+
+MainController::HandleInputResult MainController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state)
+{
+    HandleInputResult result = HANDLEINPUTRESULT_NONE;
+    bool dispatched = false;
+    switch (_state)
+    {
+        case NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS:
+            result = handleUserInputWhenNavigate(button, action, state);
+            dispatched = true;
+            break;
+        case NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER:
+            result = handleUserInputWhenEnteredNestedController(button, action, state);
+            dispatched = true;
+        default:
+            break;
+    }
+
+    if (dispatched && result == HANDLEINPUTRESULT_NONE) {
+        // TODO: dispatch to other controllers
+    }
+    return result;
+}
+
+MainController::HandleInputResult MainController::handleUserInputWhenNavigate(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state)
+{    
+    if (action == PROCESSOR_BUTTON_ACTION_CLICK){
+        switch (button)
+        {
+            case PROCESSOR_BUTTON_MENU:
+                LOG_DEBUGLN("Mode button click detected!");
+                if (_model.navigateNextNavItem()) {
+                    redrawView();
+                }
+                return HANDLEINPUTRESULT_HANDLEDBYSELF;
+            case PROCESSOR_BUTTON_OK: {
+                LOG_DEBUGLN("Confirm button click detected!");
+                auto controllerIndex = _model.getCurrentNavItemIndex();
+                auto controller = _modeControllers.at(controllerIndex);
+                if (controller->activate()) {
+                    _currentController = controller;
+                    _state = NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER;
+                }
+                return HANDLEINPUTRESULT_ENTEREDNESTEDCONTROLLER;
+            }
+            default:
+                // any button clicked once in navigation mode is considered as handled by navigation controller
+                return HANDLEINPUTRESULT_HANDLEDBYSELF;
+        }
+    }
+
+    return HANDLEINPUTRESULT_NONE;
+}
+
+MainController::HandleInputResult MainController::handleUserInputWhenEnteredNestedController(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state)
+{
+    auto result = _currentController->handleUserInput(button, action, state);
+    switch (result.handleResult)
+    {
+        case PROCESSOR_RESULT_NONE:
+            return HANDLEINPUTRESULT_NONE;
+        case PROCESSOR_RESULT_SUCCESS:
+        case PROCESSOR_RESULT_ERROR:
+            return HANDLEINPUTRESULT_HANDLEDBYNESTEDCONTROLLER;
+        case PROCESSOR_RESULT_LEAVESTATE: {
+            LOG_DEBUGLN("Leave state requested!");
+            _currentController->deactivate();
+            _state = NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS;
+            redrawView();
+            return HANDLEINPUTRESULT_LEFTNESTEDCONTROLLER;
+        }
+        case PROCESSOR_RESULT_RISEEVENT: {
+            // TODO: implement rising events functionality, below result value is wrong
+            return HANDLEINPUTRESULT_HANDLEDBYNESTEDCONTROLLER;
+        }
+        default:
+            return HANDLEINPUTRESULT_NONE;
+    }
+    return HANDLEINPUTRESULT_NONE;
+}
+
 
 bool MainController::redrawView(){
 
@@ -119,4 +172,21 @@ void MainController::addChildModeController(NavigationTargetDescriptor * control
     
     uint8_t modeIndex = _model.addTargetDescriptor(controllerInfo);
     _modeControllers[modeIndex] = controller;
+}
+
+ModeControllerCommandButtonAction MainController::translateButtonActionToMCButtonAction(ButtonAction action){
+    switch (action)
+    {
+        case BUTTON_ACTION_NONE:
+            return PROCESSOR_BUTTON_ACTION_NONE;
+        case BUTTON_ACTION_CLICK:
+            return PROCESSOR_BUTTON_ACTION_CLICK;
+        case BUTTON_ACTION_DBLCLICK:
+            return PROCESSOR_BUTTON_ACTION_DBLCLICK;
+        case BUTTON_ACTION_LONGPRESS:
+            return PROCESSOR_BUTTON_ACTION_LONGPRESS;
+        default:
+            return PROCESSOR_BUTTON_ACTION_NONE;
+    }
+    return PROCESSOR_BUTTON_ACTION_NONE;
 }

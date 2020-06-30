@@ -4,10 +4,15 @@
 #include "display.h"
 #include "mode-controller.h"
 
-#define IDLECONTROLLERSTATE_EMPTY           0x00
-#define IDLECONTROLLERSTATE_SLEEPMODE       0x01
-
 class IdleController : public ModeController{
+    private:
+        enum IdleControllerState{
+            IDLECONTROLLERSTATE_INACTIVE            = 0,
+            IDLECONTROLLERSTATE_SHOWSLEEPSPLASH     = 1,
+            IDLECONTROLLERSTATE_SLEEPING            = 2,
+            IDLECONTROLLERSTATE_SHOWWAKEUPSPLASH    = 3
+        };
+
     public:
         IdleController(Display * view, uint16_t splashDisplayDurationMillis);
 
@@ -21,11 +26,16 @@ class IdleController : public ModeController{
         bool activateSleepMode();
         bool deactivateSleepMode();
 
+        bool redrawView();
+
+        ModeControllerHandleUserInputResultData handleUserInputOnSplash(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
+        ModeControllerHandleUserInputResultData handleUserInputOnSleep(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
+
     private:
         Display * _view;
         uint16_t _splashDisplayDurationMillis;
-        uint8_t _stateFlags;
-        unsigned long _activatedAtMillis;
+        IdleControllerState _state;
+        unsigned long _stateActivatedAtMillis;
 };
 
 #endif  // _IDLE_CONTROLLER_H_

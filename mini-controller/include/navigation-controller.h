@@ -22,6 +22,15 @@ enum NavigationControllerState : uint8_t {
 
 class MainController{
 
+    private:
+        enum HandleInputResult{
+            HANDLEINPUTRESULT_NONE                          = 0,
+            HANDLEINPUTRESULT_HANDLEDBYSELF                 = 1,
+            HANDLEINPUTRESULT_HANDLEDBYNESTEDCONTROLLER     = 2,
+            HANDLEINPUTRESULT_ENTEREDNESTEDCONTROLLER       = 3,
+            HANDLEINPUTRESULT_LEFTNESTEDCONTROLLER          = 4
+        };
+
     public:
         MainController(Button * modeButton, Button * confirmButton, Button * cancelButton, NavigationView * view, std::vector<std::pair<NavigationTargetDescriptor *, ModeController *>> * childControllers = nullptr);
         ~MainController();
@@ -32,6 +41,13 @@ class MainController{
 
     private:
         bool redrawView();
+        
+        HandleInputResult processUserInput();
+        HandleInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
+        HandleInputResult handleUserInputWhenNavigate(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
+        HandleInputResult handleUserInputWhenEnteredNestedController(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
+
+        static ModeControllerCommandButtonAction translateButtonActionToMCButtonAction(ButtonAction action);
 
     private:
         Button * _modeButton;
