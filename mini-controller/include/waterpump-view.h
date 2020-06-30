@@ -8,7 +8,10 @@ class WaterPumpView{
     public:
         WaterPumpView(Display * display);
 
-        void drawModel(WaterPumpModel model);
+        void drawModel(WaterPumpModel *model);
+
+    private:
+        static const char * textualizeConnectionState(WaterPumpConnectionState connectionState);
 
     private:
         Display * _display;

@@ -42,7 +42,8 @@
 
 #define IDLE_SPLASHDISPLAY_MSEC 100
 
-#define OTA_WAITCONNECTION_MSEC (120 * 1000)
+#define INTERVAL_OTA_WAITCONNECTION_MSEC (120 * 1000)
+#define INTERVAL_WATERPUMP_PING_MSEC (10 * 1000)
 
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
@@ -77,7 +78,7 @@ NavigationView modeSelectionPresenter(&display);
 MainController mainController(&modeButton, &okButton, &cancelButton, &modeSelectionPresenter);
 
 WaterPumpView waterPumpView(&display);
-WaterPumpController waterPumpController(&waterPumpView, &radio);
+WaterPumpController waterPumpController(&waterPumpView, &radio, INTERVAL_WATERPUMP_PING_MSEC);
 NavigationTargetDescriptor waterPumpControlMode = {
   .modeName = "Water Pump",
   .flags = MODEDESCR_FLAG_DEFAULTMODE,
@@ -99,7 +100,7 @@ WiFiAP wifiAp;
 OtaUpdater otaUpdater;
 
 OtaView otaView(&display);
-OtaController otaController(&otaUpdater, &wifiAp, OTA_WAITCONNECTION_MSEC, &otaView);
+OtaController otaController(&otaUpdater, &wifiAp, INTERVAL_OTA_WAITCONNECTION_MSEC, &otaView);
 NavigationTargetDescriptor otaControllerMode = {
   .modeName = "Update Firmware",
   .flags = MODEDESCR_FLAG_NONE,
