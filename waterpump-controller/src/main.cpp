@@ -8,7 +8,7 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <xxtea-lib.h>
-#include <tnlog.h>
+#include <macro-logs.h>
 
 #include <JC_Button.h>
 

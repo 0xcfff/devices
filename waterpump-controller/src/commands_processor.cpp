@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <tnlog.h>
+#include <macro-logs.h>
 
 #include "pump_messages.h"
 #include "commands_processor.h"

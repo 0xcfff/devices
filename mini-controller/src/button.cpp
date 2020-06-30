@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <macro-flags.h>
-#include <tnlog.h>
+#include <macro-logs.h>
 
 #include "button.h"
 

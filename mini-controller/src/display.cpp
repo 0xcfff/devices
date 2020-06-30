@@ -1,4 +1,4 @@
-#include <tnlog.h>
+#include <macro-logs.h>
 
 #include "display.h"
 

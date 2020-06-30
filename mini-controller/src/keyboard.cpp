@@ -1,6 +1,6 @@
 #include <utility>
 #include <FunctionalInterrupt.h>
-#include <tnlog.h>
+#include <macro-logs.h>
 #include <macro-flags.h>
 
 #include "keyboard.h"
