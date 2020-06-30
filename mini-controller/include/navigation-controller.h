@@ -13,7 +13,11 @@
 
 #define NAVCONTROLLERSTATE_EMPTY                 0x00
 #define NAVCONTROLLERSTATE_INITIALDRAWDONE       0x01
-#define NAVCONTROLLERSTATE_MODEENTERED           0x02
+
+enum NavigationControllerState : uint8_t {
+    NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS    = 1,
+    NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER         = 2
+};
 
 
 class MainController{
@@ -37,6 +41,7 @@ class MainController{
         NavigationView * _view;
         NavigationModel _model;
         uint8_t _stateFlags;
+        NavigationControllerState _state;
         ModeController * _currentController;
 };
 

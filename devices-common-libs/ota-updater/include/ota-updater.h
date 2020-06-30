@@ -7,6 +7,15 @@
 #define OTASTATE_ACTIVE    0x01
 #define OTASTATE_ON        0x02
 
+enum OtaUpdaterStatus : uint8_t {
+    OTAUPDATERSTATUS_NONE                   = 0x00,
+    OTAUPDATERSTATUS_DISABLED               = 0x01,
+    OTAUPDATERSTATUS_WAITINGCONNECTION      = 0x02,
+    OTAUPDATERSTATUS_INPROGRESS             = 0x03,
+    OTAUPDATERSTATUS_COMPLETED              = 0x04,
+    OTAUPDATERSTATUS_ERROR                  = 0xFF
+};
+
 class OtaUpdater {
     public:
         OtaUpdater();
@@ -19,6 +28,8 @@ class OtaUpdater {
         bool isEnabled();
         bool enableOta(bool enabled = true);
 
+        OtaUpdaterStatus getStatus();
+        uint8_t getProgress();
         unsigned long getLastActivityAt();
 
     private:
@@ -30,6 +41,8 @@ class OtaUpdater {
 
     private:
         uint8_t _stateFlags;
+        OtaUpdaterStatus _status;
+        uint8_t _progress;
         unsigned long _lastActivityAt;
 
 

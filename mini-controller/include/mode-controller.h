@@ -15,9 +15,27 @@ enum ModeControllerCommandButtonAction : uint8_t {
 };
 enum ModeControllerHandleUserInputResult : uint8_t {
     PROCESSOR_RESULT_ERROR              = (uint8_t)-1,
+    PROCESSOR_RESULT_NONE               = 0,
     PROCESSOR_RESULT_SUCCESS            = 1,
-    PROCESSOR_RESULT_UNKNOWN            = 2,
-    PROCESSOR_RESULT_LEAVESTATE         = 3
+    PROCESSOR_RESULT_LEAVESTATE         = 3,
+    PROCESSOR_RESULT_ENTERSTATE         = 4,
+    PROCESSOR_RESULT_RISEEVENT          = 5
+};
+enum ModeControllerSystemEvent : uint8_t {
+    PROCESSOR_EVENT_NONE                = 0,
+    PROCESSOR_EVENT_SLEEP               = 1,
+    PROCESSOR_EVENT_WAKEUP              = 2
+};
+
+struct ModeControllerHandleUserInputResultData {
+    public:
+        ModeControllerHandleUserInputResultData() {};
+        ModeControllerHandleUserInputResultData(ModeControllerHandleUserInputResult result) : handleResult(result), riseEvent(PROCESSOR_EVENT_NONE) {};
+        ModeControllerHandleUserInputResultData(ModeControllerSystemEvent event) : handleResult(PROCESSOR_RESULT_RISEEVENT), riseEvent(event) {};
+
+    public:
+        ModeControllerHandleUserInputResult handleResult;
+        ModeControllerSystemEvent riseEvent;
 };
 
 
@@ -29,7 +47,7 @@ class ModeController{
         virtual bool deactivate() = 0;
 
         virtual bool handleTick() = 0;
-        virtual ModeControllerHandleUserInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) = 0;
+        virtual ModeControllerHandleUserInputResultData handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) = 0;
 };
 
 #endif  // _MODE_CONTROLLER_H_

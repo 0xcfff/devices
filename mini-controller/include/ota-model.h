@@ -3,13 +3,7 @@
 
 #include <stdint.h>
 
-#define OTAMODELSTATE_NONE                  0
-#define OTAMODELSTATE_WAITING               1
-#define OTAMODELSTATE_INPROGRESS            2
-#define OTAMODELSTATE_UPDATECOMPLETED       3
-#define OTAMODELSTATE_DISABLED              4
-#define OTAMODELSTATE_ERROR                 0xFF
-
+#include <ota-updater.h>
 
 
 class OtaModel{
@@ -17,10 +11,9 @@ class OtaModel{
         OtaModel();
 
         void clear();
-        void setState(uint8_t newState, char * newStatusText = nullptr);
 
     public:
-        uint8_t otaState;
+        OtaUpdaterStatus otaStatus;
         uint8_t otaProgress;
         const char * statusText;
         const char * apName;

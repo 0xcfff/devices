@@ -11,18 +11,24 @@
 
 class OtaController : public ModeController {
     public:
-        OtaController(OtaUpdater * otaUpdater, WiFiAP * wifiAp, OtaView * view);
+        OtaController(OtaUpdater * otaUpdater, WiFiAP * wifiAp, uint16_t waitIntervalMsec, OtaView * view);
 
         bool activate() override;
         bool deactivate() override;
 
         bool handleTick() override;
-        ModeControllerHandleUserInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
+        ModeControllerHandleUserInputResultData handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
+
+    private:
+        bool activateOta();
+        bool deactivateOta();
 
     private:
         OtaUpdater * _otaUpdater;
         WiFiAP * _wifiAp;
         OtaView * _view;
+        uint16_t _waitIntervalMsec;
+        bool _isActive;
         OtaModel _model;
 };
 

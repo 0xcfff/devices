@@ -5,12 +5,8 @@ OtaModel::OtaModel(){
 }
 
 void OtaModel::clear(){
-    otaState = OTAMODELSTATE_NONE;
+    otaStatus = OTAUPDATERSTATUS_NONE;
     otaProgress = 0;
     statusText = nullptr;
 }
 
-void OtaModel::setState(uint8_t newState, char * newStatusText){
-    otaState = newState;
-    statusText = newStatusText;
-}

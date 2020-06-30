@@ -9,6 +9,7 @@ MainController::MainController(Button * modeButton, Button * confirmButton, Butt
     _cancelButton(cancelButton),
     _view(modeSelectionPresenter),
     _stateFlags(NAVCONTROLLERSTATE_EMPTY),
+    _state(NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS),
     _currentController(nullptr)
 {
     _model.clear();   
@@ -51,7 +52,7 @@ bool MainController::handle(){
         auto confirmButtonAction = _confirmButton->getButtonAction();
         auto cancelButtonAction = _cancelButton->getButtonAction();
 
-        if (!IS_FLAG_SET(NAVCONTROLLERSTATE_MODEENTERED, _stateFlags)) {
+        if (_state == NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS) {
             if (modeButtonChanged && modeButtonAction == BUTTON_ACTION_CLICK) {
                 LOG_INFOLN("Mode button click detected!");
                 if (_model.navigateNextNavItem()) {
@@ -64,11 +65,11 @@ bool MainController::handle(){
                 auto controller = _modeControllers.at(controllerIndex);
                 if (controller->activate()) {
                     _currentController = controller;
-                    SET_FLAG(NAVCONTROLLERSTATE_MODEENTERED, _stateFlags);
+                    _state = NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER;
                 }
             }
         } 
-        else
+        else if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER)
         {
             if (modeButtonChanged && modeButtonAction == BUTTON_ACTION_CLICK) {
                 LOG_INFOLN("Mode button click detected!");
@@ -80,7 +81,11 @@ bool MainController::handle(){
             }
             if (cancelButtonChanged && cancelButtonAction == BUTTON_ACTION_CLICK) {
                 LOG_INFOLN("Cancel button click detected!");
-                _currentController->handleUserInput(PROCESSOR_BUTTON_CANCEL, PROCESSOR_BUTTON_ACTION_CLICK, state);
+                auto result = _currentController->handleUserInput(PROCESSOR_BUTTON_CANCEL, PROCESSOR_BUTTON_ACTION_CLICK, state);
+                if (result.handleResult == PROCESSOR_RESULT_LEAVESTATE) {
+                    _currentController->deactivate();
+                    _state = NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS;
+                }
             }
         }
     }
@@ -92,7 +97,7 @@ bool MainController::handle(){
         }
     }
 
-    if (IS_FLAG_SET(NAVCONTROLLERSTATE_MODEENTERED, _stateFlags)) {
+    if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER) {
         // TODO: avoid calls immediately after the controller is activated
         _currentController->handleTick();
     }

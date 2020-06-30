@@ -15,7 +15,7 @@ class IdleController : public ModeController{
         bool deactivate() override;
 
         bool handleTick() override;
-        ModeControllerHandleUserInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
+        ModeControllerHandleUserInputResultData handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
 
     private:
         bool activateSleepMode();

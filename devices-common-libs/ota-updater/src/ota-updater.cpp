@@ -5,6 +5,8 @@
 
 OtaUpdater::OtaUpdater():
     _stateFlags(OTASTATE_EMPTY),
+    _status(OTAUPDATERSTATUS_NONE),
+    _progress(0),
     _lastActivityAt(0)
 {    
 }
@@ -20,6 +22,8 @@ bool OtaUpdater::init() {
     ArduinoOTA.onError(std::bind(&OtaUpdater::onErrorOTA, this, std::placeholders::_1));
     ArduinoOTA.onProgress(std::bind(&OtaUpdater::onProgressOTA, this, std::placeholders::_1, std::placeholders::_2));
     ArduinoOTA.onEnd(std::bind(&OtaUpdater::onEndOTA, this));
+    _status = OTAUPDATERSTATUS_DISABLED;
+    _progress = 0;
     SET_FLAG(OTASTATE_ACTIVE, _stateFlags);
   }
   return true;
@@ -27,9 +31,12 @@ bool OtaUpdater::init() {
 
 
 bool OtaUpdater::end() {
-    bool result = false;
+    bool result = true;
     if (IS_FLAG_SET(OTASTATE_ON, _stateFlags)){
         result = enableOta(false);
+    }
+    if (result && IS_FLAG_SET(OTASTATE_ACTIVE, _stateFlags)) {
+        RESET_FLAG(OTASTATE_ACTIVE, _stateFlags);
     }
     return result;
 }
@@ -43,6 +50,14 @@ bool OtaUpdater::handle() {
 
 bool OtaUpdater::isEnabled() {
     return IS_FLAG_SET(OTASTATE_ON, _stateFlags);
+}
+
+OtaUpdaterStatus OtaUpdater::getStatus(){
+    return _status;
+}
+
+uint8_t OtaUpdater::getProgress(){
+    return _progress;
 }
 
 unsigned long OtaUpdater::getLastActivityAt(){
@@ -60,9 +75,13 @@ bool OtaUpdater::enableOta(bool enabled){
         if (enabled) {
             ArduinoOTA.begin();
             _lastActivityAt = millis();
+            _status = OTAUPDATERSTATUS_WAITINGCONNECTION;
+            _progress = 0;
             SET_FLAG(OTASTATE_ON, _stateFlags);
         } else {
             _lastActivityAt = 0;
+            _status = OTAUPDATERSTATUS_DISABLED;
+            _progress = 0;
             RESET_FLAG(OTASTATE_ON, _stateFlags);
         }
         result = true;
@@ -72,10 +91,13 @@ bool OtaUpdater::enableOta(bool enabled){
 
 
 void OtaUpdater::onStartOTA(){
+    _status = OTAUPDATERSTATUS_INPROGRESS;
+    _progress = 0;
     _lastActivityAt = millis();
 }
 
 void OtaUpdater::onErrorOTA(ota_error_t error){
+    _status = OTAUPDATERSTATUS_ERROR;
     const char * errorDescr = NULL;
     switch (error)
     {
@@ -101,10 +123,13 @@ void OtaUpdater::onErrorOTA(ota_error_t error){
 void OtaUpdater::onProgressOTA(unsigned int progress, unsigned int total){
     int progressPercent = (int)(progress * (100 / (float)total));
     LOG_INFOF("OTA progress: %i%%\n", progressPercent);
+    _progress = (uint8_t)progressPercent;
     _lastActivityAt = millis();
 }
 
 void OtaUpdater::onEndOTA(){
+    _status = OTAUPDATERSTATUS_COMPLETED;
+    _progress = 100;
     _lastActivityAt = millis();
     LOG_INFOLN("OTA completed, restarting...");
     ESP.restart();

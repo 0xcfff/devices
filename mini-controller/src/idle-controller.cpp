@@ -11,8 +11,8 @@ IdleController::IdleController(Display * view, uint16_t splashDisplayDurationMil
 {
 }
 
-ModeControllerHandleUserInputResult IdleController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) {
-    return PROCESSOR_RESULT_UNKNOWN;
+ModeControllerHandleUserInputResultData IdleController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) {
+    return PROCESSOR_RESULT_NONE;
 }
 
 

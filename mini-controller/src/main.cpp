@@ -42,6 +42,8 @@
 
 #define IDLE_SPLASHDISPLAY_MSEC 100
 
+#define OTA_WAITCONNECTION_MSEC (120 * 1000)
+
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
 //const char * testMessage = "test message";
@@ -97,7 +99,7 @@ WiFiAP wifiAp;
 OtaUpdater otaUpdater;
 
 OtaView otaView(&display);
-OtaController otaController(&otaUpdater, &wifiAp, &otaView);
+OtaController otaController(&otaUpdater, &wifiAp, OTA_WAITCONNECTION_MSEC, &otaView);
 NavigationTargetDescriptor otaControllerMode = {
   .modeName = "Update Firmware",
   .flags = MODEDESCR_FLAG_NONE,

@@ -18,7 +18,7 @@ bool WaterPumpController::handleTick(){
     return true;
 }
 
-ModeControllerHandleUserInputResult WaterPumpController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state)
+ModeControllerHandleUserInputResultData WaterPumpController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state)
 {
 
 }
