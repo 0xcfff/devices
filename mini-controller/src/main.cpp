@@ -45,7 +45,7 @@
 #define INTERVAL_OTA_WAITCONNECTION_MSEC (120 * 1000)
 #define INTERVAL_WATERPUMP_PING_MSEC (10 * 1000)
 
-const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL }; 
+const uint64_t pipes[2] = { 0xABCDABCD71LL, 0xCCCCCCC0C0LL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
 //const char * testMessage = "test message";
 uint8_t buffer[255];
@@ -292,9 +292,24 @@ bool isHighLighted = false;
 
 const char * main_list = "Living Room\nBedroom\nBedtime\nWatching TV\nGoing Out!";
 
-//bool firstTime = true;
+bool firstTime = true;
 
 void loop() {
+
+  if (firstTime) {
+        RfRequest * pReq = (RfRequest*)buffer;
+        pReq->header.flags = 0;
+        //pReq->header.command = PUMP_FLIP;
+        pReq->header.command = PUMP_STATE;
+        pReq->body.pumpStartOrFlip.durationSec = 10;
+        bool written = radio.write(buffer, sizeof(RfRequestHeader) + sizeof(PumpControlStartOrFlipBody));
+
+        Serial.printf("Write %s\n", written ? "successful" : "failed");
+        Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
+        Serial.println();
+        firstTime = false;
+  }
+
 //  bool written = radio.write(testMessage, 12);
 // bool written = radio.write(testMessage, 12);
 

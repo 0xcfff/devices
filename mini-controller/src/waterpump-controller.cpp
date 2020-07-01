@@ -82,6 +82,9 @@ bool WaterPumpController::refreshConnectionState(bool withPing){
 
     // check connectivity on the channel level
     if (cnnState == WPCONNECTION_NONE) {
+        _radio->startListening();
+        delayMicroseconds(128);
+        _radio->stopListening();
         if (!_radio->testCarrier()) {
             if (!_radio->testRPD()) {
                 cnnState = WPCONNECTION_NOSIGNAL;
