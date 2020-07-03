@@ -108,5 +108,5 @@ bool CommandsProcessor::validateMessageSize(uint16_t messageSize){
 
 void CommandsProcessor::reportMalformedInboundMessage(void * commandMessage, uint16_t messageSize){
     RfRequest * pMessage = (RfRequest*)commandMessage;
-    Serial.printf("Unknown command received: %i", (int)pMessage->header.command);
+    Serial.printf("Unknown command received: %i\n", (int)pMessage->header.command);
 }

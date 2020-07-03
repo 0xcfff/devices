@@ -80,20 +80,20 @@ MainController mainController(&modeButton, &okButton, &cancelButton, &modeSelect
 WaterPumpView waterPumpView(&display);
 WaterPumpController waterPumpController(&waterPumpView, &radio, INTERVAL_WATERPUMP_PING_MSEC);
 NavigationTargetDescriptor waterPumpControlMode = {
-  .modeName = "Water Pump",
-  .flags = MODEDESCR_FLAG_DEFAULTMODE,
-  .splashScreenXBM = Pump_bits,
-  .splashWidth = Pump_width,
-  .splashHeight = Pump_height
+    .modeName = "Water Pump",
+    .flags = MODEDESCR_FLAG_DEFAULTMODE,
+    .splashScreenXBM = Pump_bits,
+    .splashWidth = Pump_width,
+    .splashHeight = Pump_height
 };
 
 IdleController idleController(&display, IDLE_SPLASHDISPLAY_MSEC);
 NavigationTargetDescriptor idleControllerMode = {
-  .modeName = "Sleep",
-  .flags = MODEDESCR_FLAG_NONE,
-  .splashScreenXBM = Sleep_bits,
-  .splashWidth = Sleep_width,
-  .splashHeight = Sleep_height
+    .modeName = "Sleep",
+    .flags = MODEDESCR_FLAG_NONE,
+    .splashScreenXBM = Sleep_bits,
+    .splashWidth = Sleep_width,
+    .splashHeight = Sleep_height
 };
 
 WiFiAP wifiAp;
@@ -102,21 +102,21 @@ OtaUpdater otaUpdater;
 OtaView otaView(&display);
 OtaController otaController(&otaUpdater, &wifiAp, INTERVAL_OTA_WAITCONNECTION_MSEC, &otaView);
 NavigationTargetDescriptor otaControllerMode = {
-  .modeName = "Update Firmware",
-  .flags = MODEDESCR_FLAG_NONE,
-  .splashScreenXBM = OTA_bits,
-  .splashWidth = OTA_width,
-  .splashHeight = OTA_height
+    .modeName = "Update Firmware",
+    .flags = MODEDESCR_FLAG_NONE,
+    .splashScreenXBM = OTA_bits,
+    .splashWidth = OTA_width,
+    .splashHeight = OTA_height
 };
 
 
 ICACHE_RAM_ATTR void detectsButtons(DigitalPin* pin) {
-  Serial.println("Click Detected!!!");
+    Serial.println("Click Detected!!!");
 
-  modeButtonPin.riseInterrupt();
-  okButtonPin.riseInterrupt();
-  cancelButtonPin.riseInterrupt();
-  //ESP.restart();
+    modeButtonPin.riseInterrupt();
+    okButtonPin.riseInterrupt();
+    cancelButtonPin.riseInterrupt();
+    //ESP.restart();
 }
 
 void setup() {
@@ -182,203 +182,69 @@ int counter = 0;
 
 void detectDevices()
 {
-  byte error, address;
-  int nDevices;
- 
-  Serial.println("Scanning...");
- 
-  nDevices = 0;
-  for(address = 1; address < 127; address++ )
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
- 
-    if (error == 0)
+    byte error, address;
+    int nDevices;
+  
+    Serial.println("Scanning...");
+  
+    nDevices = 0;
+    for(address = 1; address < 127; address++ )
     {
-      Serial.print("I2C device found at address 0x");
-      if (address<16)
-        Serial.print("0");
-      Serial.print(address,HEX);
-      Serial.println("  !");
- 
-      nDevices++;
+        // The i2c_scanner uses the return value of
+        // the Write.endTransmisstion to see if
+        // a device did acknowledge to the address.
+        Wire.beginTransmission(address);
+        error = Wire.endTransmission();
+    
+        if (error == 0)
+        {
+            Serial.print("I2C device found at address 0x");
+            if (address<16)
+                Serial.print("0");
+            Serial.print(address,HEX);
+            Serial.println("  !");
+      
+            nDevices++;
+        }
+        else if (error==4)
+        {
+            Serial.print("Unknown error at address 0x");
+            if (address<16)
+                Serial.print("0");
+            Serial.println(address,HEX);
+        }    
     }
-    else if (error==4)
-    {
-      Serial.print("Unknown error at address 0x");
-      if (address<16)
-        Serial.print("0");
-      Serial.println(address,HEX);
-    }    
-  }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
-  else
-    Serial.println("done\n");
+    if (nDevices == 0)
+        Serial.println("No I2C devices found\n");
+    else
+        Serial.println("done\n");
  
 }
 
-void drawLogo(void)
-{
-    u8g2.setFontMode(1);	// Transparent
-#ifdef MINI_LOGO
-
-    u8g2.setFontDirection(0);
-    u8g2.setFont(u8g2_font_inb16_mf);
-    u8g2.drawStr(0, 22, "U");
-    
-    u8g2.setFontDirection(1);
-    u8g2.setFont(u8g2_font_inb19_mn);
-    u8g2.drawStr(14,8,"8");
-    
-    u8g2.setFontDirection(0);
-    u8g2.setFont(u8g2_font_inb16_mf);
-    u8g2.drawStr(36,22,"g");
-    u8g2.drawStr(48,22,"\xb2");
-    
-    u8g2.drawHLine(2, 25, 34);
-    u8g2.drawHLine(3, 26, 34);
-    u8g2.drawVLine(32, 22, 12);
-    u8g2.drawVLine(33, 23, 12);
-#else
-
-    u8g2.setFontDirection(0);
-    u8g2.setFont(u8g2_font_inb24_mf);
-    u8g2.drawStr(0, 30, "U");
-    
-    u8g2.setFontDirection(1);
-    u8g2.setFont(u8g2_font_inb30_mn);
-    u8g2.drawStr(21,8,"8");
-        
-    u8g2.setFontDirection(0);
-    u8g2.setFont(u8g2_font_inb24_mf);
-    u8g2.drawStr(51,30,"g");
-    u8g2.drawStr(67,30,"\xb2");
-    
-    u8g2.drawHLine(2, 35, 47);
-    u8g2.drawHLine(3, 36, 47);
-    u8g2.drawVLine(45, 32, 12);
-    u8g2.drawVLine(46, 33, 12);
-    
-#endif
-}
-
-void drawURL(void)
-{
-#ifndef MINI_LOGO
-  u8g2.setFont(u8g2_font_4x6_tr);
-  if ( u8g2.getDisplayHeight() < 59 )
-  {
-    u8g2.drawStr(89,20,"github.com");
-    u8g2.drawStr(73,29,"/olikraus/u8g2");
-  }
-  else
-  {
-    u8g2.setFont(u8g2_font_4x6_t_cyrillic);
-    //u8g2.drawStr(1,54,"github.com/olikraus/u8g2");
-    u8g2.enableUTF8Print();
-    u8g2.setCursor(1,54);
-    u8g2.print("Привет!");
-
-    //u8g2.drawXBM(96, 16, PumpDisabled_width, PumpDisabled_height, PumpDisabled_bits);        
-  }
-#endif
-}
-
-bool isHighLighted = false;
-
-const char * main_list = "Living Room\nBedroom\nBedtime\nWatching TV\nGoing Out!";
 
 //bool firstTime = true;
 
 void loop() {
 
-  // if (firstTime) {
-  //       RfRequest * pReq = (RfRequest*)buffer;
-  //       pReq->header.flags = 0;
-  //       //pReq->header.command = PUMP_FLIP;
-  //       pReq->header.command = PUMP_STATE;
-  //       pReq->body.pumpStartOrFlip.durationSec = 10;
-  //       bool written = radio.write(buffer, sizeof(RfRequestHeader) + sizeof(PumpControlStartOrFlipBody));
-
-  //       Serial.printf("Write %s\n", written ? "successful" : "failed");
-  //       Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
-  //       Serial.println();
-  //       firstTime = false;
-  // }
-
-//  bool written = radio.write(testMessage, 12);
-// bool written = radio.write(testMessage, 12);
-
-//  int len = sprintf(buffer, "Cycle: %i, millis since start %i msec", cyclesCount++, millis());
-
-    //detectDevices();
-
-    //u8g2.clearBuffer();
-
     // if (firstTime) {
-    //     u8g2.clearBuffer();
-    //     drawLogo();
-    //     drawURL();
-    //     u8g2.sendBuffer();        
-    //     firstTime = false;
+    //       RfRequest * pReq = (RfRequest*)buffer;
+    //       pReq->header.flags = 0;
+    //       //pReq->header.command = PUMP_FLIP;
+    //       pReq->header.command = PUMP_STATE;
+    //       pReq->body.pumpStartOrFlip.durationSec = 10;
+    //       bool written = radio.write(buffer, sizeof(RfRequestHeader) + sizeof(PumpControlStartOrFlipBody));
+
+    //       Serial.printf("Write %s\n", written ? "successful" : "failed");
+    //       Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
+    //       Serial.println();
+    //       firstTime = false;
     // }
-
-    // uint8_t ios = pcf8574.read8();
-    // Serial.printf("PCF State: %i\n", (int)ios);
-    // if (ios > 0) {
-    //     isHighLighted = !isHighLighted;
-    //     digitalWrite(LED_BUILTIN, isHighLighted ? HIGH : LOW);
-
-        
-
-    //     if (ios & 1) {
-    //         u8g2.userInterfaceSelectionList("Select Room", 2, main_list);
-    //     }
-    //     if (ios & 2) {
-    //         u8g2.userInterfaceSelectionList("Select Room", 1, main_list);
-    //     }
-    //     if (ios & 4) {
-    //         u8g2.noDisplay();
-    //         radio.powerDown();
-    //     }
-
-    // }
-
-    // u8g2.clearBuffer();
-    // mainController.handle();
-    // u8g2.sendBuffer();
 
     mainController.handle();
 
     if (display.isDirty()){
-      display.flush();
+        display.flush();
     }
 
-    // u8g2.clearBuffer();
-    // drawLogo();
-    // drawURL();
-    // u8g2.sendBuffer();
-
-
-    //controlButton.read();
-
-    //if (controlButton.wasPressed()){
-
-//    if ((counter++ %2)==0) {
-    //     RfRequest * pReq = (RfRequest*)buffer;
-    //     pReq->header.flags = 0;
-    //     pReq->header.command = PUMP_FLIP;
-    //     pReq->body.pumpStartOrFlip.durationSec = 10 * 60;
-    //     bool written = radio.write(buffer, sizeof(RfRequestHeader) + sizeof(PumpControlStartOrFlipBody));
-
-    //     Serial.printf("Write %s\n", written ? "successful" : "failed");
-    //     Serial.printf("Size of ulong %i\n", sizeof(unsigned long));
-    //     Serial.println();
-    // }
-
-     delay(200);
+    delay(200);
 }
