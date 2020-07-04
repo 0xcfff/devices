@@ -27,6 +27,9 @@
 
 #include "modes-images.h"
 
+#include "rfframe.h"
+#include "rfcommand.h"
+
 #define PIN_RF_CE D3
 #define PIN_RF_CSN D8
 
@@ -48,6 +51,10 @@
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0xCCCCCCC0C0LL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
 //const char * testMessage = "test message";
+
+const uint64_t TEMP_MY_IPADDR = 0x10C8551900LL;
+const uint64_t TEMP_TARGET_IPADDR = 0xCCCCCCC1C0LL;
+
 uint8_t buffer[255];
 int cyclesCount = 0;
 
@@ -222,7 +229,7 @@ void detectDevices()
 }
 
 
-//bool firstTime = true;
+bool firstTime = true;
 
 void loop() {
 
@@ -239,6 +246,26 @@ void loop() {
     //       Serial.println();
     //       firstTime = false;
     // }
+
+    if (firstTime) {
+        uint8_t buff[RFFRAME_MAXSIZE];
+
+        RFFrameHeader h;
+        h.flags = RFFRAME_FLAG_COMMAND | RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME;
+        h.fromAddress = TEMP_MY_IPADDR;
+        h.toAddress = TEMP_TARGET_IPADDR;
+        h.sequenceId = 1;
+
+        auto hlen = encodeRFHeader(buff, RFFRAME_MAXSIZE, &h);
+        uint8_t * byteStream = buff;
+        byteStream += hlen;
+        *byteStream = RFCOMMAND_PING;
+
+        bool res = radio.write(buff, hlen+1);
+        LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
+        
+        firstTime = false;
+    }
 
     mainController.handle();
 

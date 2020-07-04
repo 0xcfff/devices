@@ -2,6 +2,9 @@
 
 #include <macro-logs.h>
 
+#include <rfframe.h>
+#include <rfcommand.h>
+
 #include "pump_messages.h"
 #include "commands_processor.h"
 
@@ -71,6 +74,13 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
 
 
     bool handled = true;
+
+
+    RFFrameHeader frameHeader;
+    decodeRFHeader(commandMessage, messageSize, &frameHeader);
+    LOG_INFOF("Message Received, Flags: %i, From: 0x%08x, To: 0x%08x", (int)frameHeader.flags, (int)frameHeader.fromAddress, (int)frameHeader.toAddress);
+
+
     RfRequest * pMessage = (RfRequest*)commandMessage;
     switch (pMessage->header.command)
     {
