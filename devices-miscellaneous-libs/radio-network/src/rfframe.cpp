@@ -4,9 +4,9 @@
 
 #include "rfframe.h"
 
-uint8_t getRFHeaderEncodedSize(RFFrameHeader * header)
+size_t getRFHeaderEncodedSize(RFFrameHeader * header)
 {
-    uint8_t resultSize = 0;
+    size_t resultSize = 0;
 
     // flags
     resultSize += 1;
@@ -39,14 +39,14 @@ uint8_t getRFHeaderEncodedSize(RFFrameHeader * header)
     return resultSize;
 }
 
-uint8_t encodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header)
+size_t encodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header)
 {
     if (getRFHeaderEncodedSize(header) > buffSize){
         return 0;
     }
 
     uint8_t * byteStream = (uint8_t*)buff;
-    uint8_t resultSize = 0;
+    size_t resultSize = 0;
 
     // flags
     *byteStream = header->flags;
@@ -101,7 +101,7 @@ uint8_t encodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header)
     return resultSize;
 }
 
-uint8_t decodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header){
+size_t decodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header){
 
     if (buffSize == 0) {
         return 0;
@@ -109,7 +109,7 @@ uint8_t decodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header){
 
     memset(header, 0, sizeof(RFFrameHeader));
     uint8_t * byteStream = (uint8_t*)buff;
-    uint8_t resultSize = 0;
+    size_t resultSize = 0;
 
     // flags
     header->flags = *byteStream;

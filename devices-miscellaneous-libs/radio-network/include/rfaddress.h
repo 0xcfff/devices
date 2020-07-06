@@ -26,4 +26,42 @@
  * to establish P2P connections with guaranteed message delivery on RF level.
 */
 
+#include <stdint.h>
+
+#define EXTRACT_BYTE_U64(val, bytePos) ((((uint64_t)val) & (((uint64_t)0xFF) << (bytePos * 8))) >> (bytePos * 8))
+#define EXTRACT_BYTE_U32(val, bytePos) ((((uint32_t)val) & (((uint32_t)0xFF) << (bytePos * 8))) >> (bytePos * 8))
+
+#define IP_ADDR(a,b,c,d) (((uint32_t)a & 0xFF) << 24 | ((uint32_t)b & 0xFF) << 16 | ((uint32_t)c & 0xFF) << 8 | (uint32_t)d)
+
+// TODO: implement
+#define IP_ADDR_BROADCAST(ip, cidr)
+#define SUBNET_MASK(cidr)
+#define SUBNET_CIDR(mask)
+
+#define RFSLOT_IPBROADCAST      0x00
+#define RFSLOT_IPFREESLOTS      0x01
+
+/**
+ * Converts IP plus RF slot to RF address.
+ * @param  {uint32_t} ip            : IP address that is handeled by RF device
+ * @param  {uint8_t} slot           : RF slot 
+ * @return {uint64_t}               : RF address
+*/
+#define RF_ADDR(ip, slot) (((uint64_t)ip) << 8 | (slot & 0xFF))
+
+/**
+ * Constructs RF network broadcast address
+ * @param  {uint32_t} ip            : IP address that is handeled by RF device
+ * @param  {uint32_t} mask          : PI subnet mask
+ * @return {uint64_t}               : RF address
+*/
+#define RF_ADDR_NETWORKBROADCAST(ip, mask) (((uint32_t)ip & mask) | ^mask)
+
+/**
+ * Constructs RF IP broadcast address
+ * @param  {uint32_t} ip            : IP address that is handeled by RF device
+ * @return {uint64_t}               : RF address
+*/
+#define RF_ADDR_IPBROADCAST(ip) RF_ADDR(ip, RFSLOT_IPBROADCAST)
+
 #endif  // _RFADDRESS_H_

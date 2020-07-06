@@ -94,7 +94,7 @@ struct RFFrameHeader{
  * @param  {RFFrameHeader*} header : RF frame header
  * @return {uint8_t}               : size of encoded RF frame header in bytes
  */
-extern uint8_t getRFHeaderEncodedSize(RFFrameHeader * header);
+extern size_t getRFHeaderEncodedSize(RFFrameHeader * header);
 
 /**
  * Encodes RF header to specified buffer
@@ -103,7 +103,7 @@ extern uint8_t getRFHeaderEncodedSize(RFFrameHeader * header);
  * @param  {RFFrameHeader*} header : RF frame header
  * @return {uint8_t}               : number of bytes RF header consumes in encoded state
  */
-extern uint8_t encodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header);
+extern size_t encodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header);
 
 /**
  * Decodes RF header from specified buffer
@@ -112,7 +112,7 @@ extern uint8_t encodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * head
  * @param  {RFFrameHeader*} header : RF frame header
  * @return {uint8_t}               : number of bytes RF header consumed in encoded state
  */
-extern uint8_t decodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header);
+extern size_t decodeRFHeader(void * buff, size_t buffSize, RFFrameHeader * header);
 
 
 #endif  // _RFFRAME_H_

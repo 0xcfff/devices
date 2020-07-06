@@ -7,6 +7,7 @@
 #define RFCOMMAND_P2PCONNECT        0x20
 #define RFCOMMAND_P2PACCEPT         0x21
 #define RFCOMMAND_P2PREJECT         0x22
+#define RFCOMMAND_P2PDISCONNECT     0x23
 #define RFCOMMAND_PING              0x40
 #define RFCOMMAND_PONG              0x41
 

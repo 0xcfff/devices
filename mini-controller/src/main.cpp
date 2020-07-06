@@ -29,6 +29,7 @@
 
 #include "rfframe.h"
 #include "rfcommand.h"
+#include "rfchannel.h"
 
 #define PIN_RF_CE D3
 #define PIN_RF_CSN D8
@@ -59,6 +60,7 @@ uint8_t buffer[255];
 int cyclesCount = 0;
 
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
+RFChannel channel(&radio, 1024, 10*1000);
 
 PCF857x pcf8574(I2C_ADDRESS_PCF8574, &Wire);
 
@@ -261,7 +263,10 @@ void loop() {
         byteStream += hlen;
         *byteStream = RFCOMMAND_PING;
 
-        bool res = radio.write(buff, hlen+1);
+
+        //bool res = radio.write(buff, hlen+1);
+        uint8_t cmd = RFCOMMAND_PING;
+        bool res = channel.sendFrame(&h, &cmd, 1, true);
         LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
         
         firstTime = false;
