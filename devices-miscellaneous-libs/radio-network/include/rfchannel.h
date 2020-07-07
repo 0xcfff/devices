@@ -75,9 +75,12 @@ class RFChannel {
         RFChannelContent getContentAvailable(uint8_t pipe);
         bool getContentAvailable(uint8_t * pipe, RFChannelContent * content);
 
+        RFChannelPipeSignalLevel getSignalLevel(uint8_t pipe);
         size_t getContentSize(uint8_t pipe);
         bool readHeader(uint8_t pipe, RFFrameHeader * header);
+        bool peekContent(uint8_t pipe, void ** buff, size_t *size);
         bool receiveContent(uint8_t pipe, void * buff, size_t size);
+        bool clearContent(uint8_t pipe);
 
     private:
         bool handleReceive();

@@ -444,6 +444,30 @@ bool RFChannel::readHeader(uint8_t pipe, RFFrameHeader * header)
     return success;
 }
 
+RFChannelPipeSignalLevel RFChannel::getSignalLevel(uint8_t pipe)
+{
+    RFChannelPipeSignalLevel result = RFCHANNELSIGNALLEVEL_UNKNOWN;    
+    ReceiverPipeInfo * pipeInfo = _allRecevingPipes.at(pipe);
+    if (pipeInfo != nullptr && pipeInfo->state == FRRECEIVERPIPE_STATE_RECEIVED) 
+    {
+        result = pipeInfo->lastSignalLevel;
+    }
+    return result;
+}
+
+bool RFChannel::peekContent(uint8_t pipe, void ** buff, size_t *size) 
+{
+    bool success = false;    
+    ReceiverPipeInfo * pipeInfo = _allRecevingPipes.at(pipe);
+    if (pipeInfo != nullptr && pipeInfo->state == FRRECEIVERPIPE_STATE_RECEIVED) {
+        *size = pipeInfo->receivedContentSize;
+        *buff = pipeInfo->contentBuffer;
+        success = true;
+    }
+    return success;
+}
+
+
 bool RFChannel::receiveContent(uint8_t pipe, void * buff, size_t size)
 {
     bool success = false;    
@@ -454,6 +478,17 @@ bool RFChannel::receiveContent(uint8_t pipe, void * buff, size_t size)
             pipeInfo->state = FRRECEIVERPIPE_STATE_IDLE;
             success = true;
         }
+    }
+    return success;
+}
+
+bool RFChannel::clearContent(uint8_t pipe)
+{
+    bool success = false;    
+    ReceiverPipeInfo * pipeInfo = _allRecevingPipes.at(pipe);
+    if (pipeInfo != nullptr && pipeInfo->state == FRRECEIVERPIPE_STATE_RECEIVED) {
+        pipeInfo->state = FRRECEIVERPIPE_STATE_IDLE;
+        success = true;
     }
     return success;
 }
