@@ -184,7 +184,71 @@ bool RFChannel::sendFrame(RFFrameHeader * frameHeader, void * frameData, size_t 
 }
 
 bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, void * data, size_t dataSize, bool broadcast){
+    bool result = false;
 
+    RFFrameHeader frameHeader;
+    frameHeader.flags = RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME | RFFRAME_FLAG_COMMAND;
+
+    size_t headerSize = getRFHeaderEncodedSize(&frameHeader);
+    if (headerSize + dataSize <= RFFRAME_MAXSIZE) {
+        frameHeader.sequenceId = ++ _lastSequenceId;
+        frameHeader.fromAddress = localAddress;
+        frameHeader.toAddress = remoteAddress;
+        result = sendFrame(&frameHeader, data, sizeof(uint8_t), broadcast);
+    } else {
+        
+        size_t dataBytesSent = 0;
+        size_t chunkDataSize = 0;
+        size_t chunkFullSize = 0;
+        uint8_t buff[RFFRAME_MAXSIZE];
+
+        bool isListening = IS_FLAG_SET(RFCHANNELSTATE_LISTENING, _stateFlags);
+        if (isListening) {
+            _radio->stopListening();
+        }
+        _radio->openWritingPipe(frameHeader.toAddress);
+
+        while (true)
+        {
+            if (dataBytesSent == 0) {
+                RESET_FLAG(RFFRAME_FLAG_SEQLASTFRAME, frameHeader.flags);
+                frameHeader.sequenceNumber = 0;
+
+                size_t actualHeaderSize = encodeRFHeader(buff, RFFRAME_MAXSIZE, &frameHeader);
+                memcpy(buff+actualHeaderSize, data, RFFRAME_MAXSIZE - actualHeaderSize);
+                chunkDataSize = RFFRAME_MAXSIZE - actualHeaderSize;
+                chunkFullSize = RFFRAME_MAXSIZE;
+                dataBytesSent = chunkDataSize;
+            } else {
+                RESET_FLAG(RFFRAME_FLAG_SEQFIRSTFRAME, frameHeader.flags);
+                frameHeader.sequenceNumber += 1;
+
+                size_t estimatedHeaderSize = getRFHeaderEncodedSize(&frameHeader);
+
+                if (dataSize - estimatedHeaderSize - dataBytesSent > RFFRAME_MAXSIZE) {
+                    chunkDataSize = RFFRAME_MAXSIZE - estimatedHeaderSize;
+                } else {
+                    chunkDataSize = dataSize - estimatedHeaderSize - dataBytesSent;
+                    SET_FLAG(RFFRAME_FLAG_SEQLASTFRAME, frameHeader.flags);
+                }
+
+                size_t actualHeaderSize = encodeRFHeader(buff, RFFRAME_MAXSIZE, &frameHeader);                
+                memcpy(buff + actualHeaderSize, data + dataBytesSent, chunkDataSize);
+                chunkFullSize = actualHeaderSize + chunkDataSize;
+                dataBytesSent += chunkDataSize;
+            }
+
+            result = _radio->write(buff, chunkDataSize, broadcast);
+            if (!result) {
+                break;
+            }
+
+        }
+        if (isListening) {
+            _radio->startListening();
+        }
+    }
+    return result;
 }
 
 bool RFChannel::sendCommand(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, uint8_t command, void * commandData, size_t dataSize, bool broadcast)

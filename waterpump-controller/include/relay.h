@@ -37,6 +37,10 @@ class Relay{
 
         bool handle();
 
+        uint16_t getTimeSinceStartedSec();
+        uint16_t getTimeTillAutostopSec();
+        uint16_t getScheduledWorkDuration();
+
     private:
         bool init();
         bool changeRelayState(bool isWorking, uint16_t duration = RELAY_DURATION_MAXALLOWED);

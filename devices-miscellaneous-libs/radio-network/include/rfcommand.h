@@ -3,13 +3,18 @@
 
 #include <stdint.h>
 
-#define RFCOMMAND_ACK               0x10
-#define RFCOMMAND_P2PCONNECT        0x20
-#define RFCOMMAND_P2PACCEPT         0x21
-#define RFCOMMAND_P2PREJECT         0x22
-#define RFCOMMAND_P2PDISCONNECT     0x23
-#define RFCOMMAND_PING              0x40
-#define RFCOMMAND_PONG              0x41
+#define RFCOMMAND_NONE              0x00
+#define RFCOMMAND_ACK               0x01
+#define RFCOMMAND_NACK              0x02
+
+#define RFCOMMAND_PING              0x0E
+#define RFCOMMAND_PONG              0x0F
+
+#define RFCOMMAND_P2PCONNECT        0x10
+#define RFCOMMAND_P2PACCEPT         0x11
+#define RFCOMMAND_P2PREJECT         0x12
+#define RFCOMMAND_P2PDISCONNECT     0x13
+#define RFCOMMAND_P2PHEARTBEAT      0x14
 
 /**
  * Struct that defined RF Command header object. 

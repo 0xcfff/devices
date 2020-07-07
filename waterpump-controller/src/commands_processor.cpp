@@ -14,16 +14,6 @@ CommandsProcessor::CommandsProcessor(RF24 & radio, Relay & waterPumpRelay):
     _waterPumpRelay(waterPumpRelay),
     _active(false)
 {
-    _buffer = new uint8_t[DEFAULT_PROCESSOR_BUFFER_SIZE];
-    _bufferSize = DEFAULT_PROCESSOR_BUFFER_SIZE;
-}
-
-CommandsProcessor::~CommandsProcessor()
-{
-    delete _buffer;
-    _buffer = nullptr;
-    _bufferSize = 0;
-    LOG_DEBUGLN("Destroy commands processor");
 }
 
 bool CommandsProcessor::begin()
@@ -47,7 +37,7 @@ bool CommandsProcessor::end()
 
 bool CommandsProcessor::handle()
 {    
-
+    bool result = true;
     // TODO: remove this test hardcode
     _channel->handle();
     if (_channel->getContentAvailable()) {
@@ -57,37 +47,58 @@ bool CommandsProcessor::handle()
         if (_channel->getContentAvailable(&pipe, &content)){
             size_t contentSize = _channel->getContentSize(pipe);
             uint8_t buff[contentSize];
-            _channel->receiveContent(pipe, buff, contentSize);
+            RFFrameHeader frameHeader;            
+            if (!_channel->readHeader(pipe, &frameHeader) 
+                || !_channel->receiveContent(pipe, buff, contentSize))
+            {
+                LOG_WARNLN("Can't receive content");
+                result = false;
+            } 
+            else 
+            {
+                LOG_INFOF("Message Received, Flags: 0x%02x, From: 0x%08llX, To: 0x%08llX\n", (int)frameHeader.flags, (uint64_t)frameHeader.fromAddress, (uint64_t)frameHeader.toAddress);
 
-            if (content == RFCHANNEL_CONTENT_COMMAND) {
-                LOG_INFOF("Command received: %i", (int)buff[0]);
-            } else {
-                LOG_INFOF("Data received: %s", buff);
+                if (content == RFCHANNEL_CONTENT_COMMAND) {
+                    result = dispatchSysCommand(&frameHeader, buff, contentSize);
+                    if (!result) {
+                        reportMalformedInboundMessage(buff, contentSize);
+                    }
+
+                } else {
+                    if (!validateMessageSize(contentSize))
+                    {
+                        result = false;
+                    } else {
+                        result = dispatchAppCommand(&frameHeader, buff, contentSize);
+                        if (!result) {
+                            reportMalformedInboundMessage(buff, contentSize);
+                        }
+                    }
+                }
             }
+            
         }
     }
-    return true;
-
-    if (_radio.available()){
-        uint16_t messageSize = _radio.getDynamicPayloadSize();
-
-        if (!validateMessageSize(messageSize))
-        {
-            return false;
-        }
-
-        _radio.read(_buffer, messageSize);
-        bool dispatchResult = dispatchCommand(_buffer, messageSize);
-        if (!dispatchResult) {
-            reportMalformedInboundMessage(_buffer, messageSize);
-            return false;
-        }
-    }
-    return true;
+    return result;
 }
 
+bool CommandsProcessor::dispatchSysCommand(RFFrameHeader* frameHeader, void * commandMessage, uint16_t messageSize){
+    uint8_t * messageBuffer = (uint8_t *)commandMessage;
+    uint8_t command = *messageBuffer;
+    messageBuffer++;
+    messageSize--;
 
-bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageSize){
+    switch (command)
+    {
+        case RFCOMMAND_PING:
+            _channel->sendCommand(frameHeader->toAddress, frameHeader->fromAddress, frameHeader->sequenceId, RFCOMMAND_PONG, nullptr, 0, true);
+            break;
+        default:
+            break;
+    }
+}
+
+bool CommandsProcessor::dispatchAppCommand(RFFrameHeader* frameHeader, void * commandMessage, uint16_t messageSize){
 
     LOG_DINF_TXT(txtSuccess, "SUCCESS");
     LOG_DINF_TXT(txtFailure, "FAILURE");
@@ -99,27 +110,30 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
 
     bool handled = true;
 
-    RFFrameHeader frameHeader;
-    decodeRFHeader(commandMessage, messageSize, &frameHeader);
-    LOG_INFOF("Message Received, Flags: %i, From: 0x%08x, To: 0x%08x", (int)frameHeader.flags, (int)frameHeader.fromAddress, (int)frameHeader.toAddress);
-
-
+    bool statusResponseRequired = false;    
     RfRequest * pMessage = (RfRequest*)commandMessage;
     switch (pMessage->header.command)
     {
         case PUMP_FLIP: {
                 bool flipPumpResult = _waterPumpRelay.flip(pMessage->body.pumpStartOrFlip.durationSec);
                 LOG_INFOF(txtCommandLogPattern, txtCommandFlip, flipPumpResult ?  txtSuccess : txtFailure);
+                statusResponseRequired = true;
                 break;
             }
         case PUMP_START: {
                 bool startPumpResult = _waterPumpRelay.turnOn(pMessage->body.pumpStartOrFlip.durationSec);
                 LOG_INFOF(txtCommandLogPattern, txtCommandStart, startPumpResult ?  txtSuccess : txtFailure);
+                statusResponseRequired = true;
                 break;
             }
         case PUMP_STOP: {
                 bool stopPumpResult = _waterPumpRelay.turnOff();
                 LOG_INFOF(txtCommandLogPattern, txtCommandStop, stopPumpResult ?  txtSuccess : txtFailure);
+                statusResponseRequired = true;
+                break;
+            }
+        case PUMP_STATE: {
+                statusResponseRequired = true;
                 break;
             }
         default: {
@@ -127,14 +141,23 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
                 break;
             }
     }
+
+    if (statusResponseRequired) 
+    {
+        PumpControlStatusResponse response = {
+            .pumpState = _waterPumpRelay.getState(),
+            .timeSinceStartedSec = _waterPumpRelay.getTimeSinceStartedSec(),
+            .timeTillAutostopSec = _waterPumpRelay.getTimeTillAutostopSec()
+        };
+        _channel->sendData(frameHeader->toAddress, frameHeader->fromAddress, frameHeader->sequenceId, &response, sizeof(response), true);
+    }
+
     return handled;
 }
 
 
 bool CommandsProcessor::validateMessageSize(uint16_t messageSize){
     if (messageSize < sizeof(RfRequestHeader)) 
-        return false;
-    if (messageSize > _bufferSize) 
         return false;
     return true;
 }

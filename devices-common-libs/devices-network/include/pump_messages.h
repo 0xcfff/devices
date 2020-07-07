@@ -53,11 +53,11 @@ struct PumpControlInfoResponse {
 
 struct PumpControlStatusResponse {
     // 0 - turned off, 1 - turned on
-    unsigned short pumpState;
+    uint16_t pumpState;
     // seconds ago started or 0
-    unsigned long timeSinceStartedSec;
+    uint16_t timeSinceStartedSec;
     // seconds till automatic stop or 0
-    unsigned long timeTillAutostopSec;
+    uint16_t timeTillAutostopSec;
 };
 
 

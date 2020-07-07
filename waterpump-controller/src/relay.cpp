@@ -105,6 +105,28 @@ bool Relay::handle(){
 }
 
 
+uint16_t Relay::getTimeSinceStartedSec()
+{
+    if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags) || !readRelayState())
+        return 0;
+    return (uint16_t)((millis() - _lastStarted) / 1000);
+}
+
+uint16_t Relay::getTimeTillAutostopSec()
+{
+    if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags) || !readRelayState())
+        return 0;
+    uint16_t timeSinceStartedSec = (uint16_t)((millis() - _lastStarted) / 1000);
+    return _workDurationSec - timeSinceStartedSec;
+}
+
+uint16_t Relay::getScheduledWorkDuration()
+{
+    if (!IS_FLAG_SET(RELAYSTATE_ACTIVE, _stateFlags) || !readRelayState())
+        return 0;
+    return _workDurationSec;
+}
+
 
 bool Relay::init(){
     pinMode(_relayPin, OUTPUT);

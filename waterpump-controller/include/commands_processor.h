@@ -14,15 +14,14 @@ class CommandsProcessor{
     public:
         CommandsProcessor(RF24 & radio, Relay & waterPumpRelay);
 
-        ~CommandsProcessor();
-
         bool begin();
         bool end();
         bool handle();
 
     private:
         bool validateMessageSize(uint16_t messageSize);
-        bool dispatchCommand(void * commandMessage, uint16_t messageSize);
+        bool dispatchSysCommand(RFFrameHeader* frameHeader, void * commandMessage, uint16_t messageSize);
+        bool dispatchAppCommand(RFFrameHeader* frameHeader, void * commandMessage, uint16_t messageSize);
         void reportMalformedInboundMessage(void * commandMessage, uint16_t messageSize);
 
     private:
@@ -30,9 +29,6 @@ class CommandsProcessor{
         RFChannel * _channel;
 
         Relay & _waterPumpRelay;
-
-        uint8_t * _buffer;
-        uint16_t _bufferSize;
         bool _active;
 };
 
