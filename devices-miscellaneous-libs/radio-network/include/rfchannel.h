@@ -73,6 +73,7 @@ class RFChannel {
         
         RFChannelContent getContentAvailable();
         RFChannelContent getContentAvailable(uint8_t pipe);
+        bool getContentAvailable(uint8_t * pipe, RFChannelContent * content);
 
         size_t getContentSize(uint8_t pipe);
         bool readHeader(uint8_t pipe, RFFrameHeader * header);
@@ -89,6 +90,7 @@ class RFChannel {
         uint16_t _receiveTimeoutMsec;
         std::vector<ReceiverPipeInfo*> _allRecevingPipes;
         uint8_t _stateFlags;
+        uint8_t _lastSequenceId;
         
 };
 

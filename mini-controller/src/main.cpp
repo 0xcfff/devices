@@ -266,7 +266,8 @@ void loop() {
 
         //bool res = radio.write(buff, hlen+1);
         uint8_t cmd = RFCOMMAND_PING;
-        bool res = channel.sendFrame(&h, &cmd, 1, true);
+        //bool res = channel.sendFrame(&h, &cmd, 1, true);
+        bool res = channel.sendCommand(TEMP_MY_IPADDR, TEMP_TARGET_IPADDR, 0, RFCOMMAND_PING, nullptr, 0, false);
         LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
         
         firstTime = false;

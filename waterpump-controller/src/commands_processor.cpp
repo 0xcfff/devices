@@ -10,6 +10,7 @@
 
 CommandsProcessor::CommandsProcessor(RF24 & radio, Relay & waterPumpRelay):
     _radio(radio),
+    _channel( new RFChannel(&radio, 255, 10 * 1000)),
     _waterPumpRelay(waterPumpRelay),
     _active(false)
 {
@@ -29,6 +30,8 @@ bool CommandsProcessor::begin()
 {
     _waterPumpRelay.begin();
     _radio.startListening();
+    // TODO: remove this test hardcode
+    _channel->openRedingPipe(1, 0xCCCCCCC1C0LL);
     _active = true;
     return true;
 }
@@ -44,6 +47,27 @@ bool CommandsProcessor::end()
 
 bool CommandsProcessor::handle()
 {    
+
+    // TODO: remove this test hardcode
+    _channel->handle();
+    if (_channel->getContentAvailable()) {
+        uint8_t pipe;
+        RFChannelContent content;
+
+        if (_channel->getContentAvailable(&pipe, &content)){
+            size_t contentSize = _channel->getContentSize(pipe);
+            uint8_t buff[contentSize];
+            _channel->receiveContent(pipe, buff, contentSize);
+
+            if (content == RFCHANNEL_CONTENT_COMMAND) {
+                LOG_INFOF("Command received: %i", (int)buff[0]);
+            } else {
+                LOG_INFOF("Data received: %s", buff);
+            }
+        }
+    }
+    return true;
+
     if (_radio.available()){
         uint16_t messageSize = _radio.getDynamicPayloadSize();
 
@@ -74,7 +98,6 @@ bool CommandsProcessor::dispatchCommand(void * commandMessage, uint16_t messageS
 
 
     bool handled = true;
-
 
     RFFrameHeader frameHeader;
     decodeRFHeader(commandMessage, messageSize, &frameHeader);

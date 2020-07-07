@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <RF24.h>
+#include <rfchannel.h>
 
 #include "relay.h" 
 
@@ -26,6 +27,8 @@ class CommandsProcessor{
 
     private:
         RF24 & _radio;
+        RFChannel * _channel;
+
         Relay & _waterPumpRelay;
 
         uint8_t * _buffer;
