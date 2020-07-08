@@ -4,13 +4,13 @@
 #include <stdint.h>
 
 enum WaterPumpConnectionState : uint8_t {
-    WPCONNECTION_NONE               = 0,
-    WPCONNECTION_CONNECTING         = 1,
-    WPCONNECTION_CONNECTED          = 2,
-    WPCONNECTION_NOISESIGNALONLY    = 3,
-    WPCONNECTION_NOSIGNAL           = 4,
-    WPCONNECTION_NORESPONSE         = 5,
-    WPCONNECTION_RFERROR            = 6
+    WPCONNECTION_NONE                   = 0,
+    WPCONNECTION_CONNECTING             = 1,
+    WPCONNECTION_CONNECTED              = 2,
+    WPCONNECTION_CONNECTEDBADSYSIGNAL   = 3,
+    WPCONNECTION_NOSIGNAL               = 4,
+    WPCONNECTION_NORESPONSE             = 5,
+    WPCONNECTION_RFERROR                = 6
 };
 
 struct WaterPumpModel {
@@ -18,6 +18,9 @@ struct WaterPumpModel {
         void clear();
     public:
         WaterPumpConnectionState connectionState;
+        bool pumpIsWorking;
+        uint16_t timeSincePumpStartedSec;
+        uint16_t timeTillPumpAutostopSec;        
 };
 
 

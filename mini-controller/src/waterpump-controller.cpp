@@ -1,11 +1,23 @@
+#include <macro-logs.h>
+#include <pump_messages.h>
+#include <rfcommand.h>
+
 #include "waterpump-controller.h"
+
+// TODO: Remove below consts when implemented in a normal way
+// broadcast address - see rfaddres, the name can be missleading in this context
+const uint64_t TEMP_MY_NETWORK_ADDR         = 0x10C8FFFFFFLL;
+const uint64_t TEMP_MY_BROADCAST_ADDR       = 0x10C8551900LL;
+const uint64_t TEMP_TARGET_ADDR             = 0xCCCCCCC1C0LL;
 
 WaterPumpController::WaterPumpController(WaterPumpView * presenter, RF24 * radio, uint16_t pingIntervalMsec):
     _view(presenter),
     _radio(radio),
+    _channel(new RFChannel(radio, 200, 10 * 1000)),
     _state(WATERPUMPCTLSTATE_INACTIVE),
     _pingIntervalMsec(pingIntervalMsec),
-    _lastPingTimeMillis(0)
+    _lastPingTimeMillis(0),
+    _lastReceivedTimeMillis(0)
 {
 
 }
@@ -21,19 +33,23 @@ bool WaterPumpController::handleTick(){
     switch (_state)
     {
         case WATERPUMPCTLSTATE_MONITORCONNECTION: {
-            // TODO: temporary implementation, replace with normal RF messages handling
-            if (_model.connectionState == WPCONNECTION_CONNECTING) {
-                onReceiveRFMessage();
-                redrawView();
-            } else {
-                unsigned long now = millis();
-                bool shouldPing = ((now - _lastPingTimeMillis) > _pingIntervalMsec);
-                refreshConnectionState(shouldPing);
-                if (shouldPing) {
-                    _lastPingTimeMillis = now;
-                }
-            }
             
+            // process RF messages if any
+            _channel->handle();
+            bool messageReceived = onReceiveRFMessage();
+            if (messageReceived) {
+                redrawView();
+                _lastReceivedTimeMillis = millis();
+            } 
+
+            // request status update from Pump controller if needed
+            unsigned long now = millis();
+            bool shouldPing = ((now - _lastPingTimeMillis) > _pingIntervalMsec);
+            if (shouldPing) {
+                requestPumpStatus();
+                _lastPingTimeMillis = now;
+            }
+
             break;
         }
         
@@ -49,18 +65,29 @@ ModeControllerHandleUserInputResultData WaterPumpController::handleUserInput(Mod
 }
 
 bool WaterPumpController::activate(){
+
+    _radio->printDetails();
     _radio->powerUp();
     _model.clear();
+    _channel->begin();
+    _channel->openRedingPipe(1, TEMP_MY_BROADCAST_ADDR);
+    //_radio->startListening();
+    _radio->printDetails();
 
     _state = WATERPUMPCTLSTATE_MONITORCONNECTION;
-    refreshConnectionState(true);
+    requestPumpStatus();
     _lastPingTimeMillis = millis();
+    _lastReceivedTimeMillis = millis() - 1;
     redrawView();
 
     return true;
 }
 
 bool WaterPumpController::deactivate(){
+    _radio->stopListening();
+    _radio->powerDown();
+    // TODO: get rid of the mixed channel and radio parts
+    _channel->end();
     return true;
 }
 
@@ -69,7 +96,7 @@ bool WaterPumpController::redrawView(){
     return true;
 }
 
-bool WaterPumpController::refreshConnectionState(bool withPing){
+bool WaterPumpController::requestPumpStatus(){
     auto oldCnnState = _model.connectionState;
     auto cnnState = WPCONNECTION_NONE;
     
@@ -82,36 +109,69 @@ bool WaterPumpController::refreshConnectionState(bool withPing){
 
     // check connectivity on the channel level
     if (cnnState == WPCONNECTION_NONE) {
-        _radio->startListening();
-        delayMicroseconds(128);
-        _radio->stopListening();
-        if (!_radio->testCarrier()) {
-            if (!_radio->testRPD()) {
-                cnnState = WPCONNECTION_NOSIGNAL;
-            } else {
-                cnnState = WPCONNECTION_NOISESIGNALONLY;
-            }
+        RfRequestHeader pumpMessage = {
+            .command = PUMP_STATE
+        };
+        
+        if (!_channel->sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequestHeader), true)){
+            LOG_INFOLN("Can't sent message to Waterpump Controller");
+            cnnState = WPCONNECTION_NOSIGNAL;
         }
+        cnnState = WPCONNECTION_CONNECTING;
     }
     
     // check connectivity on end device level
-    if (cnnState == WPCONNECTION_NONE) {
-        if (withPing) {
-            // TODO: implement ping functionality here
-            cnnState = WPCONNECTION_CONNECTED;
-        } else {
-            cnnState = (oldCnnState == WPCONNECTION_CONNECTED) 
-                ? WPCONNECTION_CONNECTED 
-                : WPCONNECTION_CONNECTING;
-        }
+    if (cnnState != WPCONNECTION_CONNECTING || oldCnnState == WPCONNECTION_NONE) {
+        _model.connectionState = cnnState;
     }
-
-    _model.connectionState = cnnState;
     
     return oldCnnState != cnnState;
 }
 
-void WaterPumpController::onReceiveRFMessage() {
-    // TODO: implement properly
-    _model.connectionState = WPCONNECTION_CONNECTED;
+bool WaterPumpController::onReceiveRFMessage() {
+    bool somethingHasChanged = false;
+    uint8_t pipe;
+    RFChannelContent content;
+    // TODO: we should either know pipe we are working with or should rely on IPs
+    if (_channel->getContentAvailable(&pipe, &content)) {
+        somethingHasChanged = true;
+
+        RFFrameHeader frameHeader;
+        //_channel->readHeader(pipe, &frameHeader);
+
+        //LOG_DEBUGF("Message Received, Flags: 0x%02x, From: 0x%08llX, To: 0x%08llX\n", (int)frameHeader.flags, (uint64_t)frameHeader.fromAddress, (uint64_t)frameHeader.toAddress);
+
+        if (content != RFCHANNEL_CONTENT_DATA) {
+            LOG_DEBUGF("RF Command received, expected Data message, pipe %i\n", (int)pipe);
+        } else 
+        {
+            size_t contentSize = _channel->getContentSize(pipe);
+            // TODO: Temporary hack. Fix this, components should rely on knowing each other and knowing message formats
+            if (contentSize == sizeof(PumpControlStatusResponse)) {
+                PumpControlStatusResponse response;
+                _channel->receiveContent(pipe, &response, sizeof(PumpControlStatusResponse));
+                _model.pumpIsWorking = response.pumpState > 0;
+                _model.timeSincePumpStartedSec = response.timeSinceStartedSec;
+                _model.timeTillPumpAutostopSec = response.timeTillAutostopSec;
+
+                // update signal state
+                RFChannelPipeSignalLevel signal = _channel->getSignalLevel(pipe);
+                if (signal == RFCHANNELSIGNALLEVEL_GOOD) {
+                    _model.connectionState = WPCONNECTION_CONNECTED;
+                } else {
+                    _model.connectionState = WPCONNECTION_CONNECTEDBADSYSIGNAL;
+                }
+            } else {
+                LOG_DEBUGF("Wrong content size %i\n", (int)contentSize);
+            }
+        }
+        
+        _channel->clearContent(pipe);
+
+    } else if (millis() - _lastReceivedTimeMillis > _pingIntervalMsec + _pingIntervalMsec / 2 ) {
+        _model.connectionState = WPCONNECTION_NORESPONSE;
+        somethingHasChanged = true;
+    }
+
+    return somethingHasChanged;
 }

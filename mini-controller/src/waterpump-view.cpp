@@ -8,6 +8,16 @@ WaterPumpView::WaterPumpView(Display * view):
 void WaterPumpView::drawModel(WaterPumpModel * model){
     _display->drawTextLine(0, "Water Pump");
     _display->draw2CTableViewLine(1, 48, "Line:", textualizeConnectionState(model->connectionState));
+    if (model->connectionState == WPCONNECTION_CONNECTED || model->connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)
+    {
+        _display->draw2CTableViewLine(2, 48, "State:", model->pumpIsWorking ? "Working..." : "Stopped");
+        if (model->pumpIsWorking) 
+        {
+            char buff[16];
+            snprintf(buff, 16, "%u", (unsigned int)model->timeTillPumpAutostopSec);
+            _display->draw2CTableViewLine(3, 48, "Stops in:", buff);
+        }
+    }
 }
 
 const char * WaterPumpView::textualizeConnectionState(WaterPumpConnectionState connectionState){
@@ -19,7 +29,7 @@ const char * WaterPumpView::textualizeConnectionState(WaterPumpConnectionState c
             return "Connecting...";
         case WPCONNECTION_CONNECTED:
             return "Connected";
-        case WPCONNECTION_NOISESIGNALONLY:
+        case WPCONNECTION_CONNECTEDBADSYSIGNAL:
             return "Noise Only";
         case WPCONNECTION_NOSIGNAL:
             return "No Signal";

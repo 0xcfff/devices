@@ -60,6 +60,9 @@ class RFChannel {
     public:
         RFChannel(RF24 * radio, size_t maxDataSize, uint16_t receiveTimeoutMsec);
 
+        bool begin();
+        bool end();
+
         bool handle();
 
         bool sendFrame(RFFrameHeader * frameHeader, void * frameData, size_t dataSize, bool broadcast);

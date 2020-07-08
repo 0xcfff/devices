@@ -17,6 +17,32 @@ RFChannel::RFChannel(RF24 * radio, size_t maxDataSize, uint16_t receiveTimeoutMs
     }
 }
 
+bool RFChannel::begin() 
+{
+    bool result = true;
+    if (!IS_FLAG_SET(RFCHANNELSTATE_ACTIVE, _stateFlags)) {
+        //result = _radio->begin();
+        if (result) {
+            //_radio->startListening();
+            // TODO: automatic listening should only take place if corresponding control parameter is set
+            SET_FLAG(RFCHANNELSTATE_LISTENING, _stateFlags);
+            SET_FLAG(RFCHANNELSTATE_ACTIVE, _stateFlags);
+        }
+    }
+    return result;
+}
+
+bool RFChannel::end()
+{
+    bool result = true;
+    if (IS_FLAG_SET(RFCHANNELSTATE_ACTIVE, _stateFlags)) 
+    {
+        //_radio->stopListening();
+        RESET_FLAG(RFCHANNELSTATE_ACTIVE, _stateFlags);
+    }
+    return result;
+}
+
 bool RFChannel::handle() {
     handleReceive();
 }
@@ -100,9 +126,10 @@ RFChannel::ReceiveResult RFChannel::onReceive(uint8_t pipe)
                     }
                     pipeInfo->state = FRRECEIVERPIPE_STATE_RECEIVING;
                     pipeInfo->firstHeader = frameHeader;
+                    memcpy(&pipeInfo->firstHeader, &frameHeader, sizeof(RFFrameHeader));
                     
                     memcpy(pipeInfo->contentBuffer, buffer+frameHeaderSize, frameBodySize);
-                    pipeInfo->receivedContentSize += frameBodySize;
+                    pipeInfo->receivedContentSize = frameBodySize;
                     pipeInfo->lastReceivedFrameSeqenceNumber = frameHeader.sequenceNumber;
                     pipeInfo->lastReceivedMsec = millis();
                     pipeInfo->lastSignalLevel = signalLevel;
@@ -111,6 +138,7 @@ RFChannel::ReceiveResult RFChannel::onReceive(uint8_t pipe)
                     if (IS_FLAG_SET(RFFRAME_FLAG_SEQLASTFRAME, frameHeader.flags)){
                         pipeInfo->state = FRRECEIVERPIPE_STATE_RECEIVED;
                         received = FRRECEIVERPIPE_RECEIVERESULT_RECEIVECOMPLETE;                
+                        LOG_DEBUGF("Received total %i bytes of data!\n", (int)pipeInfo->receivedContentSize);
                     }
                     break;
                 case FRRECEIVERPIPE_STATE_RECEIVING:
@@ -140,7 +168,8 @@ RFChannel::ReceiveResult RFChannel::onReceive(uint8_t pipe)
                     received = FRRECEIVERPIPE_RECEIVERESULT_PARTIAL;
                     if (IS_FLAG_SET(RFFRAME_FLAG_SEQLASTFRAME, frameHeader.flags)){
                         pipeInfo->state = FRRECEIVERPIPE_STATE_RECEIVED;
-                        received = FRRECEIVERPIPE_RECEIVERESULT_RECEIVECOMPLETE;                
+                        received = FRRECEIVERPIPE_RECEIVERESULT_RECEIVECOMPLETE;
+                        LOG_DEBUGF("Received total %i bytes of data!\n", (int)pipeInfo->receivedContentSize);
                     }
                     break;
                 case FRRECEIVERPIPE_STATE_RECEIVED:
@@ -187,7 +216,7 @@ bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t 
     bool result = false;
 
     RFFrameHeader frameHeader;
-    frameHeader.flags = RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME | RFFRAME_FLAG_COMMAND;
+    frameHeader.flags = RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME;
 
     size_t headerSize = getRFHeaderEncodedSize(&frameHeader);
     if (headerSize + dataSize <= RFFRAME_MAXSIZE) {
@@ -420,7 +449,7 @@ bool RFChannel::getContentAvailable(uint8_t * pipe, RFChannelContent * content)
             break;
         }
     }
-    return content;
+    return result;
 }
 
 size_t RFChannel::getContentSize(uint8_t pipe)

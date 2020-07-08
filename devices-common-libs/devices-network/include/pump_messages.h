@@ -21,7 +21,6 @@ struct PumpControlStartOrFlipBody {
 
 // TBD add proper comments according to https://google.github.io/styleguide/cppguide.html#Comments
 struct RfRequestHeader {
-    uint8_t flags;
     uint8_t command;
 };
 

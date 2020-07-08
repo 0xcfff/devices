@@ -19,9 +19,10 @@ CommandsProcessor::CommandsProcessor(RF24 & radio, Relay & waterPumpRelay):
 bool CommandsProcessor::begin()
 {
     _waterPumpRelay.begin();
+    _channel->openRedingPipe(1, 0xCCCCCCC1C0LL);
+    _channel->begin();
     _radio.startListening();
     // TODO: remove this test hardcode
-    _channel->openRedingPipe(1, 0xCCCCCCC1C0LL);
     _active = true;
     return true;
 }
@@ -29,7 +30,8 @@ bool CommandsProcessor::begin()
 bool CommandsProcessor::end()
 {
     _waterPumpRelay.end();
-    _radio.stopListening();
+    //_radio.stopListening();
+    _channel->end();
     _active = false;
     return true;
 }
@@ -56,7 +58,12 @@ bool CommandsProcessor::handle()
             } 
             else 
             {
-                LOG_INFOF("Message Received, Flags: 0x%02x, From: 0x%08llX, To: 0x%08llX\n", (int)frameHeader.flags, (uint64_t)frameHeader.fromAddress, (uint64_t)frameHeader.toAddress);
+                LOG_INFOF("%s message received, Flags: 0x%02x, From: 0x%08llX, To: 0x%08llX\n", 
+                    content == RFCHANNEL_CONTENT_COMMAND ? "Command" : "Data", 
+                    (int)frameHeader.flags, 
+                    (uint64_t)frameHeader.fromAddress, 
+                    (uint64_t)frameHeader.toAddress
+                    );
 
                 if (content == RFCHANNEL_CONTENT_COMMAND) {
                     result = dispatchSysCommand(&frameHeader, buff, contentSize);
@@ -112,6 +119,8 @@ bool CommandsProcessor::dispatchAppCommand(RFFrameHeader* frameHeader, void * co
 
     bool statusResponseRequired = false;    
     RfRequest * pMessage = (RfRequest*)commandMessage;
+    LOG_DEBUGF("Entered app message handler, command: %i\n", (int)pMessage->header.command);
+
     switch (pMessage->header.command)
     {
         case PUMP_FLIP: {
@@ -149,7 +158,8 @@ bool CommandsProcessor::dispatchAppCommand(RFFrameHeader* frameHeader, void * co
             .timeSinceStartedSec = _waterPumpRelay.getTimeSinceStartedSec(),
             .timeTillAutostopSec = _waterPumpRelay.getTimeTillAutostopSec()
         };
-        _channel->sendData(frameHeader->toAddress, frameHeader->fromAddress, frameHeader->sequenceId, &response, sizeof(response), true);
+        bool res = _channel->sendData(frameHeader->toAddress, frameHeader->fromAddress, frameHeader->sequenceId, &response, sizeof(PumpControlStatusResponse), true);
+        LOG_DEBUGF("Response is sent, result: %s\n", res ? "Success" : "Failed");
     }
 
     return handled;

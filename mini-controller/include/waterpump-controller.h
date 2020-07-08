@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <RF24.h>
+#include <rfchannel.h>
 
 #include "mode-controller.h"
 
@@ -13,8 +14,8 @@
 class WaterPumpController : public ModeController{
     private:
         enum WaterPumpControllerState : uint8_t {
-            WATERPUMPCTLSTATE_INACTIVE              = 0,
-            WATERPUMPCTLSTATE_MONITORCONNECTION     = 1,
+            WATERPUMPCTLSTATE_INACTIVE                  = 0,
+            WATERPUMPCTLSTATE_MONITORCONNECTION         = 1,
         };
 
     public:
@@ -27,17 +28,20 @@ class WaterPumpController : public ModeController{
         ModeControllerHandleUserInputResultData handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
 
     private:
-        bool refreshConnectionState(bool withPing);
+        bool requestPumpStatus();
         bool redrawView();
 
-        void onReceiveRFMessage();
+        bool onReceiveRFMessage();
 
     private:
         WaterPumpView * _view;
         RF24 * _radio;
+        RFChannel * _channel;
+
         WaterPumpControllerState _state;
         uint16_t _pingIntervalMsec;
         unsigned long _lastPingTimeMillis;
+        unsigned long _lastReceivedTimeMillis;
         WaterPumpModel _model;
 };
 

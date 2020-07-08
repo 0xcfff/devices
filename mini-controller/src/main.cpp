@@ -53,8 +53,9 @@ const uint64_t pipes[2] = { 0xABCDABCD71LL, 0xCCCCCCC0C0LL };
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
 //const char * testMessage = "test message";
 
-const uint64_t TEMP_MY_IPADDR = 0x10C8551900LL;
-const uint64_t TEMP_TARGET_IPADDR = 0xCCCCCCC1C0LL;
+const uint64_t TEMP_MY_NETWORK_ADDR         = 0x10C8FFFFFFLL;
+const uint64_t TEMP_MY_BROADCAST_ADDR       = 0x10C8551900LL;
+const uint64_t TEMP_TARGET_ADDR             = 0xCCCCCCC1C0LL;
 
 uint8_t buffer[255];
 int cyclesCount = 0;
@@ -150,8 +151,11 @@ void setup() {
 
     //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
 
-    radio.openWritingPipe(myPipe);
-    radio.openReadingPipe(1, pipes[1]);
+    radio.openReadingPipe(0, TEMP_MY_NETWORK_ADDR);
+    radio.openReadingPipe(1, TEMP_MY_BROADCAST_ADDR);
+    //radio.openWritingPipe(myPipe);
+
+    //radio.startListening();
 
     radio.printDetails();
 
@@ -249,13 +253,18 @@ void loop() {
     //       firstTime = false;
     // }
 
+    uint8_t ppp;
+    if (radio.available(&ppp)) {
+        LOG_DEBUGF("Data available at %i\n", (int)ppp);
+    }
+
     if (firstTime) {
         uint8_t buff[RFFRAME_MAXSIZE];
 
         RFFrameHeader h;
         h.flags = RFFRAME_FLAG_COMMAND | RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME;
-        h.fromAddress = TEMP_MY_IPADDR;
-        h.toAddress = TEMP_TARGET_IPADDR;
+        h.fromAddress = TEMP_MY_BROADCAST_ADDR;
+        h.toAddress = TEMP_TARGET_ADDR;
         h.sequenceId = 1;
 
         auto hlen = encodeRFHeader(buff, RFFRAME_MAXSIZE, &h);
@@ -263,12 +272,30 @@ void loop() {
         byteStream += hlen;
         *byteStream = RFCOMMAND_PING;
 
+        bool res = false;
+
+        RfRequestHeader pumpMessage = {
+            .command = PUMP_STATE
+        };
+
+        radio.stopListening();
+
+        res = channel.sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequestHeader), true);
+        LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
 
         //bool res = radio.write(buff, hlen+1);
         uint8_t cmd = RFCOMMAND_PING;
         //bool res = channel.sendFrame(&h, &cmd, 1, true);
-        bool res = channel.sendCommand(TEMP_MY_IPADDR, TEMP_TARGET_IPADDR, 0, RFCOMMAND_PING, nullptr, 0, false);
+        res = channel.sendCommand(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, RFCOMMAND_PING, nullptr, 0, false);
         LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
+        res = channel.sendCommand(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, RFCOMMAND_PING, nullptr, 0, true);
+        LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
+
+        //radio.startListening();
+
+        //radio.openReadingPipe(0, TEMP_MY_NETWORK_ADDR);
+
+        radio.printDetails();
         
         firstTime = false;
     }
