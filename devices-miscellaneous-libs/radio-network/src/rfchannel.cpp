@@ -223,7 +223,8 @@ bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t 
         frameHeader.sequenceId = ++ _lastSequenceId;
         frameHeader.fromAddress = localAddress;
         frameHeader.toAddress = remoteAddress;
-        result = sendFrame(&frameHeader, data, sizeof(uint8_t), broadcast);
+        result = sendFrame(&frameHeader, data, dataSize, broadcast);
+        LOG_DEBUGF("Sent via SendFrame, data size: %i, header size: %i!\n", dataSize, headerSize);
     } else {
         
         size_t dataBytesSent = 0;
@@ -248,6 +249,7 @@ bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t 
                 chunkDataSize = RFFRAME_MAXSIZE - actualHeaderSize;
                 chunkFullSize = RFFRAME_MAXSIZE;
                 dataBytesSent = chunkDataSize;
+                LOG_DEBUGF("Sent frame, data size: %i!\n", (int)chunkDataSize);
             } else {
                 RESET_FLAG(RFFRAME_FLAG_SEQFIRSTFRAME, frameHeader.flags);
                 frameHeader.sequenceNumber += 1;
@@ -265,6 +267,7 @@ bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t 
                 memcpy(buff + actualHeaderSize, data + dataBytesSent, chunkDataSize);
                 chunkFullSize = actualHeaderSize + chunkDataSize;
                 dataBytesSent += chunkDataSize;
+                LOG_DEBUGF("Sent frame, data size: %i!\n", (int)chunkDataSize);
             }
 
             result = _radio->write(buff, chunkDataSize, broadcast);
@@ -298,7 +301,7 @@ bool RFChannel::sendCommand(uint64_t localAddress, uint64_t remoteAddress, uint8
             uint8_t buff[dataSize + sizeof(uint8_t)];
             buff[0] = command;
             memcpy(buff+1, commandData, dataSize + sizeof(uint8_t));
-            result = sendFrame(&frameHeader, &buff, sizeof(uint8_t), broadcast);
+            result = sendFrame(&frameHeader, &buff, sizeof(uint8_t) + dataSize, broadcast);
         }
     } else {
         
