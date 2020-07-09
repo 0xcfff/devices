@@ -17,28 +17,25 @@ WaterPumpController::WaterPumpController(WaterPumpView * presenter, RF24 * radio
     _state(WATERPUMPCTLSTATE_INACTIVE),
     _pingIntervalMsec(pingIntervalMsec),
     _lastPingTimeMillis(0),
-    _lastReceivedTimeMillis(0)
+    _lastReceivedTimeMillis(0),
+    _lastRedrawTimeMillis(0),
+    _active(0)
 {
 
 }
 
-bool WaterPumpController::handleTick(){
-    // WaterPumpConnectionState lastConnectionState = _model.connectionState;
-    // if (lastConnectionState != WPCONNECTION_CONNECTED) {
-    //     _model.connectionState = testConnection();
-    //     if (_model.connectionState != lastConnectionState) {
-    //         _view->drawModel(_model);
-    //     }
-    // }
+bool WaterPumpController::handleTick()
+{
     switch (_state)
     {
         case WATERPUMPCTLSTATE_MONITORCONNECTION: {
             
+            bool redrawn = false;
             // process RF messages if any
             _channel->handle();
             bool messageReceived = onReceiveRFMessage();
             if (messageReceived) {
-                redrawView();
+                redrawn = redrawView();
                 _lastReceivedTimeMillis = millis();
             } 
 
@@ -50,9 +47,31 @@ bool WaterPumpController::handleTick(){
                 _lastPingTimeMillis = now;
             }
 
+            // update view is Pump connected and working and minimal time went sice last redraw
+            if (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL 
+                || _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL) 
+            {
+                if (_model.pumpIsWorking) {
+                    if (!redrawn && (millis() - _lastRedrawTimeMillis) >= 500) 
+                    {
+                        redrawn = redrawView();
+                        if (redrawn) {
+                            _lastRedrawTimeMillis = millis();
+                        }
+                    }
+                }
+                else 
+                {
+                    if (_lastRedrawTimeMillis != 0) 
+                    {
+                        redrawn = redrawView();
+                        _lastRedrawTimeMillis = 0;
+                    }
+                }
+            } 
+
             break;
         }
-        
         default:
             break;
     }
@@ -61,6 +80,43 @@ bool WaterPumpController::handleTick(){
 
 ModeControllerHandleUserInputResultData WaterPumpController::handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state)
 {
+    if (!_active) {
+        return PROCESSOR_RESULT_NONE;
+    }
+
+    if (button == PROCESSOR_BUTTON_MENU) {
+        if (action == PROCESSOR_BUTTON_ACTION_CLICK 
+            && (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL
+            || _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)) {
+            _model.selectNextAction();
+            redrawView();
+            return PROCESSOR_RESULT_SUCCESS;
+        }
+        // Do not return as handled for menu command as some controllers may want to handle long press
+    }
+
+    if (button == PROCESSOR_BUTTON_CANCEL) {
+        if (action == PROCESSOR_BUTTON_ACTION_CLICK) {
+            return PROCESSOR_RESULT_LEAVESTATE;
+        }
+        if (action == PROCESSOR_BUTTON_ACTION_LONGPRESS) {
+            sendPumpCommand(WPACTION_STOP);
+        }
+        return PROCESSOR_RESULT_SUCCESS;
+    }
+
+    if (button == PROCESSOR_BUTTON_OK) {
+        if (action == PROCESSOR_BUTTON_ACTION_CLICK 
+            && (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL
+            || _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)) {
+            sendPumpCommand(_model.selectedAction);
+            redrawView();
+        }
+        return PROCESSOR_RESULT_SUCCESS;
+    }
+
+    return PROCESSOR_RESULT_NONE;
+
 
 }
 
@@ -79,6 +135,7 @@ bool WaterPumpController::activate(){
     _lastPingTimeMillis = millis();
     _lastReceivedTimeMillis = millis() - 1;
     redrawView();
+    _active = true;
 
     return true;
 }
@@ -88,6 +145,7 @@ bool WaterPumpController::deactivate(){
     _radio->powerDown();
     // TODO: get rid of the mixed channel and radio parts
     _channel->end();
+    _active = true;
     return true;
 }
 
@@ -115,7 +173,7 @@ bool WaterPumpController::requestPumpStatus(){
         
         if (!_channel->sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequestHeader), true)){
             LOG_INFOLN("Can't sent message to Waterpump Controller");
-            cnnState = WPCONNECTION_NOSIGNAL;
+            cnnState = WPCONNECTION_NOCONNECTION;
         }
         cnnState = WPCONNECTION_CONNECTING;
     }
@@ -127,6 +185,50 @@ bool WaterPumpController::requestPumpStatus(){
     
     return oldCnnState != cnnState;
 }
+
+bool WaterPumpController::sendPumpCommand(WaterPumpAction action){
+    
+    bool success = true;
+    RfRequest pumpMessage;
+    bool shouldSend = true;
+
+    switch (action)
+    {
+        case WPACTION_STOP: 
+            pumpMessage.header.command = PUMP_STOP;
+            break;
+        case WPACTION_ADDMAX:
+            pumpMessage.header.command = PUMP_START;
+            pumpMessage.body.pumpStartOrFlip.durationSec = (60 * 60) + _model.timeTillPumpAutostopSec;
+            break;
+        case WPACTION_ADD10MIN: 
+            pumpMessage.header.command = PUMP_START;
+            pumpMessage.body.pumpStartOrFlip.durationSec = (10 * 60) + _model.timeTillPumpAutostopSec;
+            break;
+        case WPACTION_ADD5MIN:
+            pumpMessage.header.command = PUMP_START;
+            pumpMessage.body.pumpStartOrFlip.durationSec = (5 * 60) + _model.timeTillPumpAutostopSec;
+            break;
+        case WPACTION_ADD1MIN:
+            pumpMessage.header.command = PUMP_START;
+            pumpMessage.body.pumpStartOrFlip.durationSec = (1 * 60) + _model.timeTillPumpAutostopSec;
+            break;        
+        default:
+            shouldSend = false;
+            success = false;
+            break;
+    }
+    if (shouldSend) {
+        if (!_channel->sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequest), true)){
+            LOG_INFOLN("Can't sent message to Waterpump Controller");
+            _model.connectionState = WPCONNECTION_NOCONNECTION;
+            success = false;
+        }
+    }
+
+    return success;
+}
+
 
 bool WaterPumpController::onReceiveRFMessage() {
     bool somethingHasChanged = false;
@@ -153,11 +255,12 @@ bool WaterPumpController::onReceiveRFMessage() {
                 _model.pumpIsWorking = response.pumpState > 0;
                 _model.timeSincePumpStartedSec = response.timeSinceStartedSec;
                 _model.timeTillPumpAutostopSec = response.timeTillAutostopSec;
+                _model.lastStatusUpdatedMillis = millis();
 
                 // update signal state
                 RFChannelPipeSignalLevel signal = _channel->getSignalLevel(pipe);
                 if (signal == RFCHANNELSIGNALLEVEL_GOOD) {
-                    _model.connectionState = WPCONNECTION_CONNECTED;
+                    _model.connectionState = WPCONNECTION_CONNECTEDGOODSIGNAL;
                 } else {
                     _model.connectionState = WPCONNECTION_CONNECTEDBADSYSIGNAL;
                 }
@@ -169,7 +272,7 @@ bool WaterPumpController::onReceiveRFMessage() {
         _channel->clearContent(pipe);
 
     } else if (millis() - _lastReceivedTimeMillis > _pingIntervalMsec + _pingIntervalMsec / 2 ) {
-        _model.connectionState = WPCONNECTION_NORESPONSE;
+        _model.connectionState = WPCONNECTION_NOCONNECTION;
         somethingHasChanged = true;
     }
 

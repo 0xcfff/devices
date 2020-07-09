@@ -29,6 +29,7 @@ class WaterPumpController : public ModeController{
 
     private:
         bool requestPumpStatus();
+        bool sendPumpCommand(WaterPumpAction action);        
         bool redrawView();
 
         bool onReceiveRFMessage();
@@ -42,7 +43,9 @@ class WaterPumpController : public ModeController{
         uint16_t _pingIntervalMsec;
         unsigned long _lastPingTimeMillis;
         unsigned long _lastReceivedTimeMillis;
+        unsigned long _lastRedrawTimeMillis;
         WaterPumpModel _model;
+        bool _active;
 };
 
 

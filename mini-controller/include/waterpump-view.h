@@ -12,6 +12,7 @@ class WaterPumpView{
 
     private:
         static const char * textualizeConnectionState(WaterPumpConnectionState connectionState);
+        static const char * textualizeWaterPumpAction(WaterPumpAction action);
 
     private:
         Display * _display;

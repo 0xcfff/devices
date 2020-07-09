@@ -93,13 +93,13 @@ RFChannel::ReceiveResult RFChannel::onReceive(uint8_t pipe)
         
         // read signal level
         RFChannelPipeSignalLevel signalLevel = RFCHANNELSIGNALLEVEL_UNKNOWN;
-        if (!_radio->testCarrier()) {
-            if (!_radio->testRPD()) {
-                signalLevel = RFCHANNELSIGNALLEVEL_GOOD;
-            } else {
-                signalLevel = RFCHANNELSIGNALLEVEL_BAD;
-            }
-        }
+        bool signalIsGood = _radio->isPVariant()
+            ? _radio->testRPD()
+            : _radio->testCarrier();
+        signalLevel = signalIsGood 
+            ? RFCHANNELSIGNALLEVEL_GOOD
+            : RFCHANNELSIGNALLEVEL_BAD;
+        LOG_DEBUGF("Signal Level Is: %i\n", (int)signalIsGood);
 
         size_t frameHeaderSize = decodeRFHeader(buffer, payloadSize, &frameHeader);
         size_t frameBodySize = payloadSize - frameHeaderSize;
