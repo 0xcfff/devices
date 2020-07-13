@@ -48,6 +48,8 @@
 
 #define INTERVAL_OTA_WAITCONNECTION_MSEC (120 * 1000)
 #define INTERVAL_WATERPUMP_PING_MSEC (2 * 1000)
+#define INTERWAL_MAIN_DEVICESLEEPING 100
+#define INTERWAL_MAIN_DEVICESACTIVE 30
 
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0xCCCCCCC0C0LL }; 
 const uint64_t myPipe = 0xCCCCCCC1C0LL; 
@@ -121,12 +123,9 @@ NavigationTargetDescriptor otaControllerMode = {
 
 
 ICACHE_RAM_ATTR void detectsButtons(DigitalPin* pin) {
-    Serial.println("Click Detected!!!");
-
     modeButtonPin.riseInterrupt();
     okButtonPin.riseInterrupt();
     cancelButtonPin.riseInterrupt();
-    //ESP.restart();
 }
 
 void setup() {
@@ -235,7 +234,7 @@ void detectDevices()
 }
 
 
-bool firstTime = true;
+//bool firstTime = true;
 
 void loop() {
 
@@ -253,52 +252,52 @@ void loop() {
     //       firstTime = false;
     // }
 
-    uint8_t ppp;
-    if (radio.available(&ppp)) {
-        LOG_DEBUGF("Data available at %i\n", (int)ppp);
-    }
+    // uint8_t ppp;
+    // if (radio.available(&ppp)) {
+    //     LOG_DEBUGF("Data available at %i\n", (int)ppp);
+    // }
 
-    if (firstTime) {
-        uint8_t buff[RFFRAME_MAXSIZE];
+    // if (firstTime) {
+    //     uint8_t buff[RFFRAME_MAXSIZE];
 
-        RFFrameHeader h;
-        h.flags = RFFRAME_FLAG_COMMAND | RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME;
-        h.fromAddress = TEMP_MY_BROADCAST_ADDR;
-        h.toAddress = TEMP_TARGET_ADDR;
-        h.sequenceId = 1;
+    //     RFFrameHeader h;
+    //     h.flags = RFFRAME_FLAG_COMMAND | RFFRAME_FLAG_SEQFIRSTFRAME | RFFRAME_FLAG_SEQLASTFRAME;
+    //     h.fromAddress = TEMP_MY_BROADCAST_ADDR;
+    //     h.toAddress = TEMP_TARGET_ADDR;
+    //     h.sequenceId = 1;
 
-        auto hlen = encodeRFHeader(buff, RFFRAME_MAXSIZE, &h);
-        uint8_t * byteStream = buff;
-        byteStream += hlen;
-        *byteStream = RFCOMMAND_PING;
+    //     auto hlen = encodeRFHeader(buff, RFFRAME_MAXSIZE, &h);
+    //     uint8_t * byteStream = buff;
+    //     byteStream += hlen;
+    //     *byteStream = RFCOMMAND_PING;
 
-        bool res = false;
+    //     bool res = false;
 
-        RfRequestHeader pumpMessage = {
-            .command = PUMP_STATE
-        };
+    //     RfRequestHeader pumpMessage = {
+    //         .command = PUMP_STATE
+    //     };
 
-        radio.stopListening();
+    //     radio.stopListening();
 
-        res = channel.sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequestHeader), true);
-        LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
+    //     res = channel.sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequestHeader), true);
+    //     LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
 
-        //bool res = radio.write(buff, hlen+1);
-        uint8_t cmd = RFCOMMAND_PING;
-        //bool res = channel.sendFrame(&h, &cmd, 1, true);
-        res = channel.sendCommand(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, RFCOMMAND_PING, nullptr, 0, false);
-        LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
-        res = channel.sendCommand(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, RFCOMMAND_PING, nullptr, 0, true);
-        LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
+    //     //bool res = radio.write(buff, hlen+1);
+    //     uint8_t cmd = RFCOMMAND_PING;
+    //     //bool res = channel.sendFrame(&h, &cmd, 1, true);
+    //     res = channel.sendCommand(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, RFCOMMAND_PING, nullptr, 0, false);
+    //     LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
+    //     res = channel.sendCommand(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, RFCOMMAND_PING, nullptr, 0, true);
+    //     LOG_INFOF("Sending is %s\n", res ? "successful" : "failed");
 
-        //radio.startListening();
+    //     //radio.startListening();
 
-        //radio.openReadingPipe(0, TEMP_MY_NETWORK_ADDR);
+    //     //radio.openReadingPipe(0, TEMP_MY_NETWORK_ADDR);
 
-        radio.printDetails();
+    //     radio.printDetails();
         
-        firstTime = false;
-    }
+    //     firstTime = false;
+    // }
 
     mainController.handle();
 
@@ -306,5 +305,9 @@ void loop() {
         display.flush();
     }
 
-    delay(200);
+    uint16_t sleepInterval = mainController.isSleeping()
+        ? INTERWAL_MAIN_DEVICESLEEPING
+        : INTERWAL_MAIN_DEVICESACTIVE;
+
+    delay(sleepInterval);
 }

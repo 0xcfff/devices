@@ -1,4 +1,5 @@
 #include <macro-flags.h>
+#include <macro-logs.h>
 
 #include "xbm/Sleep.xbm"
 #include "idle-controller.h"
@@ -51,6 +52,21 @@ ModeControllerHandleUserInputResultData IdleController::handleUserInputOnSleep(M
         }
     }
     return PROCESSOR_RESULT_NONE;
+}
+
+ModeControllerSystemEventResult IdleController::handleSystemEvent(ModeControllerSystemEvent systemEvent)
+{
+    ModeControllerSystemEventResult result = PROCESSOR_EVENTRESULT_NONE;
+    if (systemEvent == PROCESSOR_EVENT_SLEEP) {
+        LOG_DEBUGLN("Going sleep through sys event");
+        activateSleepMode();
+        result = PROCESSOR_EVENTRESULT_HANDLED;
+    } else if (systemEvent == PROCESSOR_EVENT_WAKEUP) {
+        LOG_DEBUGLN("Going out of sleep through sys event");
+        deactivateSleepMode();
+        result = PROCESSOR_EVENTRESULT_HANDLED;
+    }
+    return result;
 }
 
 bool IdleController::redrawView(){    

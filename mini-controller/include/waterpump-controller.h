@@ -26,6 +26,7 @@ class WaterPumpController : public ModeController{
 
         bool handleTick() override;
         ModeControllerHandleUserInputResultData handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) override;
+        ModeControllerSystemEventResult handleSystemEvent(ModeControllerSystemEvent systemEvent);
 
     private:
         bool requestPumpStatus();

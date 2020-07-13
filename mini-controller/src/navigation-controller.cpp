@@ -3,6 +3,9 @@
 
 #include "navigation-controller.h"
 
+//TODO: move this to proper place
+#define NAVCONTROLLER_SLEEP_TIMEOUT     (20 * 1000)
+
 MainController::MainController(Button * modeButton, Button * confirmButton, Button * cancelButton, NavigationView * modeSelectionPresenter, std::vector<std::pair<NavigationTargetDescriptor *, ModeController *>> * childControllers) :
     _modeButton(modeButton),
     _confirmButton(confirmButton),
@@ -10,7 +13,9 @@ MainController::MainController(Button * modeButton, Button * confirmButton, Butt
     _view(modeSelectionPresenter),
     _stateFlags(NAVCONTROLLERSTATE_EMPTY),
     _state(NAVCONTROLLERSTATE_NAVIGATINGTHROUGHCONTROLLERS),
-    _currentController(nullptr)
+    _currentController(nullptr),
+    _lastUserActionMillis(0),
+    _sleepMode(false)
 {
     _model.clear();   
     if (childControllers != nullptr) {
@@ -27,6 +32,10 @@ MainController::~MainController()
     _model.clear();
 }
 
+bool MainController::isSleeping(){
+    return _sleepMode;
+}
+
 bool MainController::handle(){
 
     // make sure initial drawing is performed
@@ -41,17 +50,85 @@ bool MainController::handle(){
     _confirmButton->tick();
     _cancelButton->tick();
 
+
+    bool wasSleeping = _sleepMode;
+    processSleepMode();
+    bool wokeUp = wasSleeping && !_sleepMode;
+    
+
     // process user input
-    HandleInputResult handleInputResult = processUserInput();
+    if (!wokeUp) {
+        HandleInputResult handleInputResult = processUserInput();
 
+        // tick nested controller if needed
+        if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER && handleInputResult != HANDLEINPUTRESULT_ENTEREDNESTEDCONTROLLER && !_sleepMode) {
+            // only call handleTick for nested controller if it was not entered on this cycle
+            _currentController->handleTick();
+        }
+    } 
+   
+    return true;
+}
 
-    // tick nested controller if needed
-    if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER && handleInputResult != HANDLEINPUTRESULT_ENTEREDNESTEDCONTROLLER) {
-        // only call handleTick for nested controller if it was not entered on this cycle
-        _currentController->handleTick();
+bool MainController::processSleepMode()
+{
+    bool result = false;
+    bool buttonPressed =_modeButton->isChanged()
+        || _confirmButton->isChanged()
+        || _cancelButton->isChanged();
+
+    if (_lastUserActionMillis == 0) {
+        _lastUserActionMillis = millis();
     }
 
-    return true;
+    if (buttonPressed) {
+        if (_sleepMode) 
+        {
+            ModeController * controllerToSkip = nullptr;
+            if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER) {
+                _currentController->handleSystemEvent(PROCESSOR_EVENT_WAKEUP);
+                controllerToSkip = _currentController;
+            }
+            for(int i = 0; i < (int)_modeControllers.size(); i++) {
+                auto controller = _modeControllers.at(i);
+                if (controller != controllerToSkip) {
+                    controller->handleSystemEvent(PROCESSOR_EVENT_WAKEUP);
+                }
+            }
+            _sleepMode = false;
+            result = true;
+        }
+        _lastUserActionMillis = millis();
+    } else {
+        if (!_sleepMode) {
+            if ((millis() - _lastUserActionMillis) > NAVCONTROLLER_SLEEP_TIMEOUT) 
+            {
+                bool postpone = false;
+                ModeController * controllerToSkip = nullptr;
+                if (_state == NAVCONTROLLERSTATE_ENTEREDNESTEDCONTROLLER) {
+                    auto result = _currentController->handleSystemEvent(PROCESSOR_EVENT_SLEEP);
+                    if (result == PROCESSOR_EVENTRESULT_POSTPONE) {
+                        postpone = true;
+                    } else {
+                        controllerToSkip = _currentController;
+                    }
+                }
+                if (postpone) {
+                    _lastUserActionMillis = millis();
+                } else {
+                    for(int i = 0; i < (int)_modeControllers.size(); i++) {
+                        auto controller = _modeControllers.at(i);
+                        if (controller != controllerToSkip) {
+                            controller->handleSystemEvent(PROCESSOR_EVENT_SLEEP);
+                        }
+                    }
+                    _sleepMode = true;
+                    result = true;
+                }
+            }
+        }
+    }
+    return result;
 }
 
 MainController::HandleInputResult MainController::processUserInput()

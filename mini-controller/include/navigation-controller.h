@@ -38,10 +38,12 @@ class MainController{
         bool handle();
 
         void addChildModeController(NavigationTargetDescriptor * controllerInfo, ModeController * controller);
+        bool isSleeping();
 
     private:
         bool redrawView();
         
+        bool processSleepMode();
         HandleInputResult processUserInput();
         HandleInputResult handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
         HandleInputResult handleUserInputWhenNavigate(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state);
@@ -59,6 +61,8 @@ class MainController{
         uint8_t _stateFlags;
         NavigationControllerState _state;
         ModeController * _currentController;
+        unsigned long _lastUserActionMillis;
+        bool _sleepMode;
 };
 
 

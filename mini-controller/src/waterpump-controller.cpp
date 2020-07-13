@@ -120,6 +120,30 @@ ModeControllerHandleUserInputResultData WaterPumpController::handleUserInput(Mod
 
 }
 
+ModeControllerSystemEventResult WaterPumpController::handleSystemEvent(ModeControllerSystemEvent systemEvent)
+{
+    ModeControllerSystemEventResult result = PROCESSOR_EVENTRESULT_NONE;
+    if (_active) {
+        switch (systemEvent)
+        {
+            case PROCESSOR_EVENT_SLEEP:
+                // TODO: make it more elegant
+                deactivate();
+                _active = true;
+                result = PROCESSOR_EVENTRESULT_HANDLED;
+                break;
+            case PROCESSOR_EVENT_WAKEUP:
+                // TODO: make it more elegant
+                _active = false;
+                activate();
+                result = PROCESSOR_EVENTRESULT_HANDLED;
+            default:
+                break;
+        }
+    }
+    return result;
+}
+
 bool WaterPumpController::activate(){
 
     _radio->printDetails();

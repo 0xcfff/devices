@@ -124,3 +124,17 @@ ModeControllerHandleUserInputResultData OtaController::handleUserInput(ModeContr
     return PROCESSOR_RESULT_NONE;
 }
 
+ModeControllerSystemEventResult OtaController::handleSystemEvent(ModeControllerSystemEvent systemEvent)
+{
+    ModeControllerSystemEventResult result = PROCESSOR_EVENTRESULT_NONE;
+    if (_isActive) {
+        if (_model.otaStatus == OTAUPDATERSTATUS_DISABLED
+            || _model.otaStatus == OTAUPDATERSTATUS_ERROR) {
+            result = PROCESSOR_EVENTRESULT_HANDLED;
+        } else {
+            result = PROCESSOR_EVENTRESULT_POSTPONE;
+        }
+    }
+    return PROCESSOR_EVENTRESULT_NONE;
+}
+

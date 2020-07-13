@@ -27,6 +27,13 @@ enum ModeControllerSystemEvent : uint8_t {
     PROCESSOR_EVENT_WAKEUP              = 2
 };
 
+enum ModeControllerSystemEventResult : uint8_t {
+    PROCESSOR_EVENTRESULT_NONE          = 0,
+    PROCESSOR_EVENTRESULT_HANDLED       = 1,
+    PROCESSOR_EVENTRESULT_POSTPONE      = 2,
+    PROCESSOR_EVENTRESULT_ERROR         = 3
+};
+
 struct ModeControllerHandleUserInputResultData {
     public:
         ModeControllerHandleUserInputResultData() {};
@@ -47,7 +54,9 @@ class ModeController{
         virtual bool deactivate() = 0;
 
         virtual bool handleTick() = 0;
+        // TODO: reconsider return value. It does not make sense to initiate sleep from this function
         virtual ModeControllerHandleUserInputResultData handleUserInput(ModeControllerCommandButton button, ModeControllerCommandButtonAction action, ModeControllerCommandButton state) = 0;
+        virtual ModeControllerSystemEventResult handleSystemEvent(ModeControllerSystemEvent systemEvent) = 0;
 };
 
 #endif  // _MODE_CONTROLLER_H_
