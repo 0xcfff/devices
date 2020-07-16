@@ -86,8 +86,10 @@ ModeControllerHandleUserInputResultData WaterPumpController::handleUserInput(Mod
 
     if (button == PROCESSOR_BUTTON_MENU) {
         if (action == PROCESSOR_BUTTON_ACTION_CLICK 
-            && (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL
-            || _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)) {
+        //    && (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL
+        //    || _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)) {
+        )
+        {
             _model.selectNextAction();
             redrawView();
             return PROCESSOR_RESULT_SUCCESS;
@@ -107,8 +109,10 @@ ModeControllerHandleUserInputResultData WaterPumpController::handleUserInput(Mod
 
     if (button == PROCESSOR_BUTTON_OK) {
         if (action == PROCESSOR_BUTTON_ACTION_CLICK 
-            && (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL
-            || _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)) {
+            //&& (_model.connectionState == WPCONNECTION_CONNECTEDGOODSIGNAL
+            //|| _model.connectionState == WPCONNECTION_CONNECTEDBADSYSIGNAL)) {
+        ) 
+        {
             sendPumpCommand(_model.selectedAction);
             redrawView();
         }
@@ -243,7 +247,14 @@ bool WaterPumpController::sendPumpCommand(WaterPumpAction action){
             break;
     }
     if (shouldSend) {
-        if (!_channel->sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequest), true)){
+        bool res = false;
+        int cnt = 0;
+        while (res == false && cnt < 3) {
+            res = _channel->sendData(TEMP_MY_BROADCAST_ADDR, TEMP_TARGET_ADDR, 0, &pumpMessage, sizeof(RfRequest), true);
+            cnt++;
+        }
+
+        if (!res){
             LOG_INFOLN("Can't sent message to Waterpump Controller");
             _model.connectionState = WPCONNECTION_NOCONNECTION;
             success = false;

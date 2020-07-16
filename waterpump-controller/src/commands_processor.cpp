@@ -158,8 +158,13 @@ bool CommandsProcessor::dispatchAppCommand(RFFrameHeader* frameHeader, void * co
             .timeSinceStartedSec = _waterPumpRelay.getTimeSinceStartedSec(),
             .timeTillAutostopSec = _waterPumpRelay.getTimeTillAutostopSec()
         };
-        bool res = _channel->sendData(frameHeader->toAddress, frameHeader->fromAddress, frameHeader->sequenceId, &response, sizeof(PumpControlStatusResponse), true);
-        LOG_DEBUGF("Response is sent, result: %s\n", res ? "Success" : "Failed");
+        int count = 0;
+        bool res = false;
+        while (res == false && count < 3) {
+            res = _channel->sendData(frameHeader->toAddress, frameHeader->fromAddress, frameHeader->sequenceId, &response, sizeof(PumpControlStatusResponse), true);
+            LOG_DEBUGF("Response is sent, result: %s\n", res ? "Success" : "Failed");
+            count++;
+        }
     }
 
     return handled;

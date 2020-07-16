@@ -38,9 +38,9 @@ void WaterPumpView::drawModel(WaterPumpModel * model){
             LOG_DEBUGF("Sec passed %i\n", (int)secPassed);
         }
 
-        const char * selectedAction = textualizeWaterPumpAction(model->selectedAction);
-        _display->drawTextLine(3, selectedAction);
     }
+    const char * selectedAction = textualizeWaterPumpAction(model->selectedAction);
+    _display->drawTextLine(3, selectedAction);
 }
 
 const char * WaterPumpView::textualizeConnectionState(WaterPumpConnectionState connectionState){
