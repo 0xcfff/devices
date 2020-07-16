@@ -57,6 +57,7 @@ bool ControlButtonProcessor::handle() {
         }
 
         if (IS_FLAG_SET(CTLBTNPROCSTATE_OTAENABLED, _stateFlags)) {
+            _otaUpdater.handle();
             if ((millis() - _otaUpdater.getLastActivityAt()) / 1000 > _wifiAutoDisableSec){
                 LOG_INFOLN(F("OTA inactivity timeout expired, disabling OTA mode..."));
                 bool disabled = enableOtaMode(false)
