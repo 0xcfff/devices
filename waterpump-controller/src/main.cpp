@@ -30,6 +30,7 @@
 #define OTAMODE_AUTODISABLE_DURATION_SEC          (1 * 60)
 #define OTAMODE_INDICATORLED_BLINKINTERVAL_MSEC   200
 #define WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC     (30 * 60)
+#define WATERPUMP_AUTORESTART_MSEC (6 * 60 * 60 * 1000)
 
 const uint64_t pipes[2] = { 0xAC0001DD01LL, 0x544d52687CLL };  
 const uint64_t myPipe = 0xAC0001DD01LL; 
@@ -63,7 +64,7 @@ void setup() {
   radio.begin();
 
   radio.setChannel(100);
-  radio.setPALevel(RF24_PA_HIGH);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
+  radio.setPALevel(RF24_PA_MAX);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
   radio.setDataRate(RF24_250KBPS);
   //radio.setAutoAck(1);                     // Ensure autoACK is enabled
   //radio.setRetries(2,15);                  // Optionally, increase the delay between retries & # of retries
@@ -96,6 +97,16 @@ void loop() {
   controlButtonProcessor.handle();
   radioCommandsProcessor.handle();
   waterPumpRelay.handle();
+
+  if (millis() > WATERPUMP_AUTORESTART_MSEC) {
+    // works for long time, maybe need to reboot
+    bool isIdle = !ota.isEnabled() 
+        && !waterPumpRelay.getState();
+    if (isIdle) {
+      LOG_DEBUGLN("Scheduled restart. Restarting...");
+      ESP.restart();
+    }
+  }
 
   if ((counter++ % 5) == 0){
     LOG_DEBUGLN("Tick...");
