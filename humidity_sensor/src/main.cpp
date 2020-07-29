@@ -15,7 +15,7 @@ const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };
 const uint64_t myPipe = 0xabababab01LL; 
 const char * testMessage = "test message";
 
-uint8_t values[3];
+uint8_t values[6];
 
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
 DHT dht(DHTPIN, DHTTYPE);
@@ -85,10 +85,13 @@ void loop() {
 
 
     values[0] = (uint8_t)h;
-    values[1] = (uint8_t)t;
-    values[2] = (uint8_t)hic;
+    values[1] = (uint8_t)((uint16_t)(h * 100) % 100);
+    values[2] = (uint8_t)t;
+    values[3] = (uint8_t)((uint16_t)(t * 100) % 100);
+    values[4] = (uint8_t)hic;
+    values[5] = (uint8_t)((uint16_t)(hic * 100) % 100);
 
-    bool written = radio.write(values, sizeof(uint8_t)*3);
+    bool written = radio.write(values, sizeof(uint8_t)*6);
 
     Serial.print("Write ");
     Serial.print(written ? "successful" : "failed");
