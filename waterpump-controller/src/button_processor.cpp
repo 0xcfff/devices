@@ -24,7 +24,8 @@ bool ControlButtonProcessor::begin() {
     bool result = 
         _otaUpdater.begin()
         && _wifiAp.begin()
-        && _stateIndicatorLed.begin();
+        && _stateIndicatorLed.begin()
+        && enableOtaMode(false);
 
     if (result) {
         SET_FLAG(CTLBTNPROCSTATE_ACTIVE, _stateFlags);
