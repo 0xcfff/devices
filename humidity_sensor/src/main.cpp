@@ -3,6 +3,11 @@
 #include <RF24.h>
 #include <DHT.h>
 
+#ifdef ESP8266
+#define TEST12345
+#endif
+
+
 #define PIN_RF_CE D2
 #define PIN_RF_CSN D8
 
@@ -18,6 +23,8 @@ const char * testMessage = "test message";
 uint8_t values[6];
 
 RF24 radio(PIN_RF_CE, PIN_RF_CSN);
+RFChannel channel(&radio, 200, 10*1000);
+
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
@@ -42,8 +49,12 @@ void setup() {
 
   //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
 
-  radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1, myPipe);
+  // Use pipes[1] - write pipe
+  // Use myPipe - read pipe
+  //radio.openWritingPipe(pipes[1]);
+  //radio.openReadingPipe(1, myPipe);
+  channel.begin();
+  channel.openRedingPipe(1, myPipe);
 
   radio.printDetails();
 
@@ -91,7 +102,8 @@ void loop() {
     values[4] = (uint8_t)hic;
     values[5] = (uint8_t)((uint16_t)(hic * 100) % 100);
 
-    bool written = radio.write(values, sizeof(uint8_t)*6);
+    //bool written = radio.write(values, sizeof(uint8_t)*6);
+    bool written = channel.sendData(myPipe, pipes[1], 0, values, sizeof(uint8_t)*6, true);
 
     Serial.print("Write ");
     Serial.print(written ? "successful" : "failed");
