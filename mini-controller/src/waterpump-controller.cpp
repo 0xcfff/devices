@@ -273,7 +273,7 @@ bool WaterPumpController::onReceiveRFMessage() {
     if (_channel->getContentAvailable(&pipe, &content)) {
         somethingHasChanged = true;
 
-        RFFrameHeader frameHeader;
+        //RFFrameHeader frameHeader;
         //_channel->readHeader(pipe, &frameHeader);
 
         //LOG_DEBUGF("Message Received, Flags: 0x%02x, From: 0x%08llX, To: 0x%08llX\n", (int)frameHeader.flags, (uint64_t)frameHeader.fromAddress, (uint64_t)frameHeader.toAddress);

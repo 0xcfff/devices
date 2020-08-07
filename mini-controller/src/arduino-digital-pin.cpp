@@ -25,6 +25,7 @@ ArduinoDigitalPin::ArduinoDigitalPin(uint8_t pinNumber, uint8_t pinMode, uint8_t
 std::string ArduinoDigitalPin::displayName(){
     char buff[8];
     snprintf(buff, sizeof(buff), "pin:%i", _pinNumber);
+    return buff;
 }
 
 uint8_t ArduinoDigitalPin::supportedFeatures(){

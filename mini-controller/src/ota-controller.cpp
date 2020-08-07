@@ -5,9 +5,9 @@
 OtaController::OtaController(OtaUpdater * otaUpdater, WiFiAP * wifiAp, uint16_t waitIntervalMsec, OtaView * view) : 
     _otaUpdater(otaUpdater),
     _wifiAp(wifiAp),
+    _view(view),
     _waitIntervalMsec(waitIntervalMsec),
-    _isActive(false),
-    _view(view)
+    _isActive(false)
 {
 
 }
@@ -128,13 +128,16 @@ ModeControllerSystemEventResult OtaController::handleSystemEvent(ModeControllerS
 {
     ModeControllerSystemEventResult result = PROCESSOR_EVENTRESULT_NONE;
     if (_isActive) {
-        if (_model.otaStatus == OTAUPDATERSTATUS_DISABLED
-            || _model.otaStatus == OTAUPDATERSTATUS_ERROR) {
-            result = PROCESSOR_EVENTRESULT_HANDLED;
-        } else {
-            result = PROCESSOR_EVENTRESULT_POSTPONE;
+        if (systemEvent == PROCESSOR_EVENT_SLEEP) 
+        {
+            if (_model.otaStatus == OTAUPDATERSTATUS_DISABLED
+                || _model.otaStatus == OTAUPDATERSTATUS_ERROR) {
+                result = PROCESSOR_EVENTRESULT_HANDLED;
+            } else {
+                result = PROCESSOR_EVENTRESULT_POSTPONE;
+            }
         }
     }
-    return PROCESSOR_EVENTRESULT_NONE;
+    return result;
 }
 
