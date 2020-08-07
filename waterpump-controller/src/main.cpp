@@ -5,6 +5,10 @@
 #include <RF24.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+#include <DNSServer.h>
+
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <xxtea-lib.h>
@@ -18,6 +22,7 @@
 #include "ota-updater.h"
 #include "commands_processor.h"
 #include "button_processor.h"
+#include "web_processor.h"
 #include "dacha1_network.h"
 
 #define PIN_RADIO_CE          D3
@@ -32,14 +37,21 @@
 #define WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC     (30 * 60)
 #define WATERPUMP_AUTORESTART_MSEC (6 * 60 * 60 * 1000)
 
+#define WATERPUMP_WIFI_SSID "esp8266-wpump"
+#define WATERPUMP_WIFI_PSWD "11111111"
+
+#define DNS_PORT 53
+
 const uint64_t pipes[2] = { 0xAC0001DD01LL, 0x544d52687CLL };  
 const uint64_t myPipe = 0xAC0001DD01LL; 
 char * buffer = new char[255];
 
 
-
 // Components
-WiFiAP wifiAp;
+ESP8266WebServer server(80);
+DNSServer dnsServer;
+
+WiFiAP wifiAp(WATERPUMP_WIFI_SSID, WATERPUMP_WIFI_PSWD);
 OtaUpdater ota;
 RF24 radio(PIN_RADIO_CE, PIN_RADIO_CSN);
 Button controlButton(PIN_BUTTON_CONTROL);
@@ -49,7 +61,7 @@ Relay waterPumpRelay(PIN_RELAY_WATERPUMP, RELAYCFG_ENABLE_HIGH | RELAYCFG_START_
 // Input processors
 CommandsProcessor radioCommandsProcessor(radio, waterPumpRelay);
 ControlButtonProcessor controlButtonProcessor(controlButton, ota, wifiAp, indicatorLed, OTAMODE_AUTODISABLE_DURATION_SEC, CONTROLBUTTON_LONGPRESS_DELAY, OTAMODE_INDICATORLED_BLINKINTERVAL_MSEC);
-
+WebProcessor webProcessor(&server, &radio, &waterPumpRelay, &controlButtonProcessor);
 
 ///////////// TODO ////////////////////
 // TODO: Implement Security on top of nrf24l01 (sign messages, keys exchange (preshared or something else), etc)
@@ -87,6 +99,17 @@ void setup() {
   controlButtonProcessor.begin();
 
   radio.printDetails();
+
+  // init WiFi
+  wifiAp.begin();
+  wifiAp.turnOn();
+
+  // Web Processor
+  webProcessor.begin();
+
+  // DNS Capacitive Portal
+  dnsServer.start(DNS_PORT, "*", wifiAp.getOwnIP());
+
   LOG_INFOLN("Initialization completed.");
 }
 
@@ -97,7 +120,10 @@ void loop() {
   controlButtonProcessor.handle();
   radioCommandsProcessor.handle();
   waterPumpRelay.handle();
+  webProcessor.handle();
+  dnsServer.processNextRequest();
 
+/*
   if (millis() > WATERPUMP_AUTORESTART_MSEC) {
     // works for long time, maybe need to reboot
     bool isIdle = !ota.isEnabled() 
@@ -107,6 +133,7 @@ void loop() {
       ESP.restart();
     }
   }
+  */
 
   if ((counter++ % 5) == 0){
     LOG_DEBUGLN("Tick...");

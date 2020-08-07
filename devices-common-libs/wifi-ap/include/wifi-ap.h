@@ -9,7 +9,7 @@
 
 class WiFiAP {
     public:
-        WiFiAP(const char * apName = nullptr);
+        WiFiAP(const char * ssid = nullptr, const char * pswd = nullptr);
 
         const char * getApName();
         bool setApName(const char * apName = nullptr);
@@ -28,7 +28,8 @@ class WiFiAP {
         bool changeWiFiAPState(bool enabled);
 
     private:
-        const char * _apName;
+        const char * _ssid;
+        const char * _pswd;
         uint8_t _stateFlags;
 
 };
