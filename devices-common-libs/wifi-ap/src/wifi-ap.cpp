@@ -9,7 +9,7 @@
 WiFiAP::WiFiAP(const char * apName) :
     _stateFlags(WIFIAP_STATE_EMPTY)
 {
-    setApName(_apName);
+    setApName(apName);
 }
 
 const char * WiFiAP::getApName(){
@@ -23,7 +23,7 @@ bool WiFiAP::setApName(const char * apName){
         buffer = new char[16];
         sprintf(buffer, "esp8266-%06x", ESP.getChipId());
     } else {
-        char * buffer = new char[strlen(apName)];
+        buffer = new char[strlen(apName)+1];
         strcpy(buffer, apName);
     }
     _apName = buffer;
