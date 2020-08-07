@@ -160,7 +160,25 @@
     #define LOGENABLED_INFO
     #define DEF_LOG_INFO_MSG(name, value) __LOG_MSG_VAR(name, value)
     #define DEF_LOG_INFO_PMSG(name, value) __LOG_PMSG_VAR(name, value)
+    
+    /**
+     * Macros sends specified message text to  logging subsystem to log it 
+     * with INFO level. The message is logged only if INFO level logging is enabled, 
+     * see MINLOGLEVEL for details.
+     * 
+     * @param  {char *} msg              : Text nessage to log with INFO level
+     * @return {int}                     : Number of chars logged
+     */
     #define LOG_INFOLN(msg) __LOG_WRITE_ENTRY_LN(LOGLEVEL_INFO, "INFO", msg)
+    /**
+     * Macros formats specified fmt string with arguments and then sends resuolt text 
+     * to  logging subsystem to log it with INFO level. The text is logged 
+     * only if INFO level logging is enabled, see MINLOGLEVEL for details.
+     * 
+     * @param  {const char*} fmt          : Format string
+     * @param  {...} __VA_ARGS__          : Format agruments
+     * @return {int}                      : Number of chars logged
+     */
     #define LOG_INFOF(fmt, ...) __LOG_WRITE_ENTRY_F(LOGLEVEL_INFO, "INFO", fmt, __VA_ARGS__)
 #else
     #define DEF_LOG_INFO_MSG(name, value)
