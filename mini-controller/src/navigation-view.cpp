@@ -13,4 +13,5 @@ bool NavigationView::drawModeSplash(NavigationTargetDescriptor * modeDescriptor)
         modeDescriptor->splashScreenXBM,
         modeDescriptor->modeName
     );
+    return true;
 }

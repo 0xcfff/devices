@@ -44,7 +44,13 @@ bool RFChannel::end()
 }
 
 bool RFChannel::handle() {
-    handleReceive();
+    bool result = false;
+    if (IS_FLAG_SET(RFCHANNELSTATE_ACTIVE, _stateFlags)) {
+        handleReceive();
+        handleReceiveTimeouts();        
+        result = true;
+    }
+    return result;
 }
 
 bool RFChannel::handleReceive(){
@@ -54,7 +60,6 @@ bool RFChannel::handleReceive(){
     {
         received |= (onReceive(pipe) == FRRECEIVERPIPE_RECEIVERESULT_RECEIVECOMPLETE);
     }
-    
     return received;
 }
 
@@ -69,6 +74,7 @@ bool RFChannel::handleReceiveTimeouts()
             && (currentMillis - pipeInfo->lastReceivedMsec) > _receiveTimeoutMsec) {
                 pipeInfo->state = FRRECEIVERPIPE_STATE_TIMEDOUT;
                 timeoutsFound = true;
+                LOG_VERBOSEF("Pipe %i receiving timed out\n", (int)pipe);
                 break;
             }
     }
@@ -180,8 +186,8 @@ RFChannel::ReceiveResult RFChannel::onReceive(uint8_t pipe)
                     break;
             }
         }
-        return received;
     }
+    return received;
 }
 
 bool RFChannel::sendFrame(RFFrameHeader * frameHeader, void * frameData, size_t dataSize, bool broadcast)

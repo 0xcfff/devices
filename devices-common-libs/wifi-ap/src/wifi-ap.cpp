@@ -6,14 +6,15 @@
 
 #include "wifi-ap.h"
 
-WiFiAP::WiFiAP(const char * apName) :
+WiFiAP::WiFiAP(const char * apName, const char * pswd) :
+    _pswd(pswd),
     _stateFlags(WIFIAP_STATE_EMPTY)
 {
-    setApName(_apName);
+    setApName(apName);
 }
 
 const char * WiFiAP::getApName(){
-    return _apName;
+    return _ssid;
 }
 
 bool WiFiAP::setApName(const char * apName){
@@ -23,10 +24,10 @@ bool WiFiAP::setApName(const char * apName){
         buffer = new char[16];
         sprintf(buffer, "esp8266-%06x", ESP.getChipId());
     } else {
-        char * buffer = new char[strlen(apName)];
+        buffer = new char[strlen(apName)+1];
         strcpy(buffer, apName);
     }
-    _apName = buffer;
+    _ssid = buffer;
 
     if (getState()) {
         result = turnOff() && turnOn();
@@ -76,7 +77,7 @@ bool WiFiAP::changeWiFiAPState(bool enabled){
     bool result = true;    
     if (enabled) {
         WiFi.mode(WIFI_AP);
-        result = WiFi.softAP(_apName);
+        result = WiFi.softAP(_ssid, _pswd);
         if (result) {
             SET_FLAG(WIFIAP_STATE_ENABLED, _stateFlags);
         }

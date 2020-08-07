@@ -141,7 +141,7 @@ void setup() {
     Serial.println();
     
     radio.setChannel(100);
-    radio.setPALevel(RF24_PA_HIGH);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
+    radio.setPALevel(RF24_PA_MAX);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
     radio.setDataRate(RF24_250KBPS);
     //radio.setAutoAck(1);                     // Ensure autoACK is enabled
     //radio.setRetries(2,15);                  // Optionally, increase the delay between retries & # of retries

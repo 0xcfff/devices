@@ -83,13 +83,18 @@ bool ControlButtonProcessor::handle() {
 }
 
 bool ControlButtonProcessor::enableOtaMode(bool enable){
-    bool result = 
-        _wifiAp.setState(enable)
-        && _otaUpdater.enableOta(enable);
-    if (result) {
+    bool result = false;
+
+    if (IS_FLAG_SET(CTLBTNPROCSTATE_OTAENABLED, _stateFlags) != enable) {
+        if (enable) {
+            _wifiAp.setState(enable);
+        }
+        _otaUpdater.enableOta(enable);
         SET_FLAG_VALUE(CTLBTNPROCSTATE_OTAENABLED, enable, _stateFlags);
         LOG_DEBUGLN(enable ? F("OTA mode enabled.") : F("OTA mode disabled."));
+        result = true;
     }
+
     return result;
 }
 

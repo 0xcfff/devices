@@ -22,9 +22,9 @@ class ControlButtonProcessor{
 
         bool handle();
 
-    private:
-
         bool enableOtaMode(bool enable);
+
+    private:
 
         void onControlButtonClick();
         void onControlButtonLongPress();

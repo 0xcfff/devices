@@ -16,10 +16,10 @@ void OtaView::drawModel(OtaModel * model) {
         case OTAUPDATERSTATUS_WAITINGCONNECTION: {
             char ipAddress[20];
             sprintf(ipAddress, "%i.%i.%i.%i", 
-                (int)((model->ownIP >> 24) & 0xFF),
-                (int)((model->ownIP >> 16) & 0xFF),
+                (int)((model->ownIP >> 0) & 0xFF),
                 (int)((model->ownIP >> 8) & 0xFF),
-                (int)((model->ownIP >> 0) & 0xFF));
+                (int)((model->ownIP >> 16) & 0xFF),
+                (int)((model->ownIP >> 24) & 0xFF));
 
             _display->drawTextLine(0, "OTA Firmware Update");
             _display->draw2CTableViewLine(1, 48, "Status:", "Waiting...");

@@ -107,12 +107,13 @@ bool CommandsProcessor::dispatchSysCommand(RFFrameHeader* frameHeader, void * co
 
 bool CommandsProcessor::dispatchAppCommand(RFFrameHeader* frameHeader, void * commandMessage, uint16_t messageSize){
 
-    LOG_DINF_TXT(txtSuccess, "SUCCESS");
-    LOG_DINF_TXT(txtFailure, "FAILURE");
-    LOG_DINF_TXT(txtCommandFlip, "WATERPUMP_FLIP");
-    LOG_DINF_TXT(txtCommandStart, "WATERPUMP_START");
-    LOG_DINF_TXT(txtCommandStop, "WATERPUMP_STOP");
-    LOG_DINF_TXT(txtCommandLogPattern, "%s command processed: %s\n");
+    
+    DEF_LOG_INFO_MSG(txtSuccess, "SUCCESS");
+    DEF_LOG_INFO_MSG(txtFailure, "FAILURE");
+    DEF_LOG_INFO_MSG(txtCommandFlip, "WATERPUMP_FLIP");
+    DEF_LOG_INFO_MSG(txtCommandStart, "WATERPUMP_START");
+    DEF_LOG_INFO_MSG(txtCommandStop, "WATERPUMP_STOP");
+    DEF_LOG_INFO_MSG(txtCommandLogPattern, "%s command processed: %s\n");
 
 
     bool handled = true;
