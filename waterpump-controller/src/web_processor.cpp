@@ -1,7 +1,12 @@
 #include <macro-flags.h>
 #include <macro-logs.h>
 
+#include <LittleFS.h>
+
+
 #include "web_processor.h"
+
+// TODO: Rewrite to AsyncWebServer
 
 WebProcessor::WebProcessor(ESP8266WebServer * webServer, RF24 * radio, Relay * relay, ControlButtonProcessor * cmdProcessor) :
     _webServer(webServer),
@@ -65,6 +70,7 @@ bool WebProcessor::setupWebHandlers()
         webPage += "<p><a href=\"/info\">Info</a></p>";
         webPage += "<p><a href=\"/pump\">Pump</a></p>";
         webPage += "<p><a href=\"/rf24\">RF24</a></p>";
+        webPage += "<p><a href=\"/test\">Test Page</a></p>";
         server->send(200, "text/html", webPage);
     });
     server->on("/rf24", [server, radio](){
@@ -96,8 +102,12 @@ bool WebProcessor::setupWebHandlers()
         webPage += "</p>";
         server->send(200, "text/html", webPage);
     });
-    server->on("/api/ota", [cmdProcessor](){
+    server->on("/api/ota", HTTP_POST, [cmdProcessor](){
         cmdProcessor->enableOtaMode(true);
+    });
+    server->on("/api/restart", HTTP_POST, [](){
+        LOG_INFOLN("ESP Restart requested from Web API");        
+        ESP.restart();
     });
     server->on("/info", [server](){
         char buff[40];
@@ -155,6 +165,13 @@ bool WebProcessor::setupWebHandlers()
 
         webPage += "</p>";
         server->send(200, "text/html", webPage);
+    });
+    server->on("/test", [server](){
+        auto file = LittleFS.open("/test.html", "r");
+        file.seek(0);
+        auto page = file.readString();
+        file.close();
+        server->send(200, "text/html", page);
     });
     return true;
 }
