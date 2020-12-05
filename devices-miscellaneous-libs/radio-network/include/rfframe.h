@@ -48,6 +48,17 @@
 */
 #define RFFRAME_FLAG_EXTRAFLAGS     0x01
 
+/* 14 bytes without length
+IP Like Header
+  Version : 4 bit
+  Flags : 4 bit 
+  Protocol: 8
+  Length : 8 ???
+  Identification (sequenceId, sequenceNumber) : 16
+  Source IP : 40
+  Dest IP : 40
+*/
+
 struct RFFrameHeader{
     /**
      * Contains flags the content of the frame and its header

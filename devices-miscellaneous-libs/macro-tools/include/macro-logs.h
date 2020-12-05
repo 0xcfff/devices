@@ -166,7 +166,7 @@
      * with INFO level. The message is logged only if INFO level logging is enabled, 
      * see MINLOGLEVEL for details.
      * 
-     * @param  {char *} msg              : Text nessage to log with INFO level
+     * @param  {char*}  msg              : Text nessage to log with INFO level
      * @return {int}                     : Number of chars logged
      */
     #define LOG_INFOLN(msg) __LOG_WRITE_ENTRY_LN(LOGLEVEL_INFO, "INFO", msg)
@@ -175,7 +175,7 @@
      * to  logging subsystem to log it with INFO level. The text is logged 
      * only if INFO level logging is enabled, see MINLOGLEVEL for details.
      * 
-     * @param  {const char*} fmt          : Format string
+     * @param  {const char*} <fmt>        : Format string
      * @param  {...} __VA_ARGS__          : Format agruments
      * @return {int}                      : Number of chars logged
      */

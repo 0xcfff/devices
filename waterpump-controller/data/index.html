@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/jquery.mobile-1.4.5.min.css">
+<script src="/jquery.js"></script>
+<script src="/jquery.mobile-1.4.5.min.js"></script>
+</head>
+<body>
+
+<div data-role="page" id="hostpage">
+  <div data-role="panel" id="left-panel"> 
+    <h2>Menu Panel</h2>
+    <p>You can close the panel by clicking outside the panel, pressing the Esc key, by swiping, or by clicking the button below:</p>
+    <ul data-role="listview" >
+      <li data-role="list-divider">Menu</li>
+      <li><a href="#" class="ui-btn ui-btn-icon-left ui-icon-home ui-btn-active ui-state-persist ui-corner-all" >Home</a></li>
+      <li><a href="#info" class="ui-btn ui-btn-icon-left ui-icon-info ui-state-persist ui-corner-all" >Info</a></li>
+      <li><a href="#rf24" class="ui-btn ui-btn-icon-left ui-icon-mail ui-state-persist ui-corner-all" >RF24</a></li>
+      <li><a href="#settings" class="ui-btn ui-btn-icon-left ui-icon-gear ui-corner-all" >Settings</a></li>
+      <li data-role="list-divider"></li>
+      <li><a href="#" class="ui-btn ui-btn-icon-left ui-icon-delete" data-rel="close" >Close panel</a></li>
+    </ul>
+
+  </div> 
+
+  <div data-role="header">
+    <h1>Page</h1>
+    <a href="#left-panel" data-icon="bars" data-iconpos="notext" data-shadow="false" data-iconshadow="false">Menu</a>
+  </div>
+
+  <div data-role="main" class="ui-content">
+
+    <div data-role="navbar">
+      <ul>
+        <li><a href="#" data-icon="home">Home</a></li>
+        <li><a href="#info" data-icon="info">Info</a></li>
+        <li><a href="#rf24" data-icon="mail" >RF24</a></li>
+        <li><a href="#settings" data-icon="gear" >Settings</a></li>
+      </ul>
+    </div><!-- /navbar -->
+
+	
+    <label for="slider-3">Both options together:</label>
+    <input type="range" name="slider-3" id="slider-3" min="0" max="100" value="50" data-show-value="true" data-popup-enabled="false">
+
+    <div class="ui-grid-a ui-responsive">
+        <div class="ui-block-a"><a href="#" class="ui-btn ui-shadow ui-corner-all">Grid A</a></div>
+        <div class="ui-block-b"><a href="#" class="ui-btn ui-shadow ui-corner-all">Grid A</a></div>
+    </div>
+
+  </div>
+  <div data-role="footer">
+    <h1>Page Footer</h1>
+  </div> 
+</div> 
+
+</body>
+</html>

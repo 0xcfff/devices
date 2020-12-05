@@ -1,0 +1,24 @@
+{
+  "name": "waterpump-controller-ui",
+  "version": "1.0.0",
+  "description": "Waterpump Controller UI",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack-dev-server"
+  },
+  "author": "0xcfff",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "jquery": "^3.5.1",
+    "jquery-mobile": "^1.5.0-alpha.1"
+  }
+}

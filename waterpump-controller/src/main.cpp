@@ -8,6 +8,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <DNSServer.h>
+#include <LittleFS.h>
 
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -25,27 +26,25 @@
 #include "web_processor.h"
 #include "dacha1_network.h"
 
-#define PIN_RADIO_CE          D3
-#define PIN_RADIO_CSN         D8
-#define PIN_LED_INDICATOR D1
-#define PIN_RELAY_WATERPUMP D2
-#define PIN_BUTTON_CONTROL D4
+#define PIN_RADIO_CE            D3
+#define PIN_RADIO_CSN           D8
+#define PIN_LED_INDICATOR       D1
+#define PIN_RELAY_WATERPUMP     D2
+#define PIN_BUTTON_CONTROL      D4
 
 #define CONTROLBUTTON_LONGPRESS_DELAY             (3 * 1000)
 #define OTAMODE_AUTODISABLE_DURATION_SEC          (1 * 60)
 #define OTAMODE_INDICATORLED_BLINKINTERVAL_MSEC   200
 #define WATERPUMP_MAXIMUM_ENABLEDDURATION_SEC     (30 * 60)
-#define WATERPUMP_AUTORESTART_MSEC (6 * 60 * 60 * 1000)
 
-#define WATERPUMP_WIFI_SSID "esp8266-wpump"
-#define WATERPUMP_WIFI_PSWD "11111111"
+#define WATERPUMP_WIFI_SSID     "esp8266-wpump"
+#define WATERPUMP_WIFI_PSWD     "11111111"
 
-#define DNS_PORT 53
+#define DNS_PORT                53
 
-const uint64_t pipes[2] = { 0xAC0001DD01LL, 0x544d52687CLL };  
-const uint64_t myPipe = 0xAC0001DD01LL; 
-char * buffer = new char[255];
-
+#define RADIO_CHANNEL           100
+#define RADIO_DATARATE          RF24_250KBPS
+#define RADIO_PALEVEL           RF24_PA_MAX
 
 // Components
 ESP8266WebServer server(80);
@@ -68,78 +67,88 @@ WebProcessor webProcessor(&server, &radio, &waterPumpRelay, &controlButtonProces
 
 
 void setup() {
-  // init serial
-  Serial.begin(115200);
-  Serial.println("Initializing...");
+    // init serial
+    Serial.begin(115200);
+    Serial.println("Initializing...");
 
-  // init radio
-  radio.begin();
+    // Init FS
+//    LittleFS.begin();
+    LittleFS.begin();
 
-  radio.setChannel(100);
-  radio.setPALevel(RF24_PA_MAX);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
-  radio.setDataRate(RF24_250KBPS);
-  //radio.setAutoAck(1);                     // Ensure autoACK is enabled
-  //radio.setRetries(2,15);                  // Optionally, increase the delay between retries & # of retries
-  //radio.enableDynamicPayloads();
-  //radio.enableDynamicAck();
-  //radio.setPayloadSize(12);
-  radio.enableDynamicPayloads();
-  
-  //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
+    // init radio
+    radio.begin();
 
-  //radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_CONTROLLER, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(2, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_WATERPUMP, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(3, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_BANYA, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(4, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN4, RF_DEVICEID_WATERPUMP));
-  radio.openReadingPipe(5, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN5, RF_DEVICEID_WATERPUMP));
+    radio.setChannel(RADIO_CHANNEL);
+    radio.setPALevel(RADIO_PALEVEL);           // If you want to save power use "RF24_PA_MIN" but keep in mind that reduces the module's range
+    radio.setDataRate(RADIO_DATARATE);
+    //radio.setAutoAck(1);                     // Ensure autoACK is enabled
+    //radio.setRetries(2,15);                  // Optionally, increase the delay between retries & # of retries
+    //radio.enableDynamicPayloads();
+    //radio.enableDynamicAck();
+    //radio.setPayloadSize(12);
+    radio.enableDynamicPayloads();
+    
+    //radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
 
-  // init Commands Processor
-  radioCommandsProcessor.begin();
-  controlButtonProcessor.begin();
+    //radio.openWritingPipe(pipes[1]);
+    radio.openReadingPipe(1, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_CONTROLLER, RF_DEVICEID_WATERPUMP));
+    radio.openReadingPipe(2, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_WATERPUMP, RF_DEVICEID_WATERPUMP));
+    radio.openReadingPipe(3, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_BANYA, RF_DEVICEID_WATERPUMP));
+    radio.openReadingPipe(4, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN4, RF_DEVICEID_WATERPUMP));
+    radio.openReadingPipe(5, RF_L3NET_P2P_ADDR(RF_NETWORK_DACHA1, RF_DEVICEID_UNKNOWN5, RF_DEVICEID_WATERPUMP));
 
-  radio.printDetails();
+    // init Commands Processor
+    radioCommandsProcessor.begin();
+    controlButtonProcessor.begin();
 
-  // init WiFi
-  wifiAp.begin();
-  wifiAp.turnOn();
+    radio.printDetails();
 
-  // Web Processor
-  webProcessor.begin();
+    // init WiFi
+    wifiAp.begin();
+    wifiAp.turnOn();
 
-  // DNS Capacitive Portal
-  dnsServer.start(DNS_PORT, "*", wifiAp.getOwnIP());
+    // Web Processor
+    webProcessor.begin();
 
-  LOG_INFOLN("Initialization completed.");
+    // DNS Capacitive Portal
+    dnsServer.start(DNS_PORT, "*", wifiAp.getOwnIP());
+
+    LOG_INFOLN("Initialization completed.");
 }
 
 int counter = 0;
 
 void loop() {
 
-  controlButtonProcessor.handle();
-  radioCommandsProcessor.handle();
-  waterPumpRelay.handle();
-  webProcessor.handle();
-  dnsServer.processNextRequest();
+    controlButtonProcessor.handle();
+    radioCommandsProcessor.handle();
+    waterPumpRelay.handle();
+    webProcessor.handle();
+    dnsServer.processNextRequest();
 
-/*
-  if (millis() > WATERPUMP_AUTORESTART_MSEC) {
-    // works for long time, maybe need to reboot
-    bool isIdle = !ota.isEnabled() 
-        && !waterPumpRelay.getState();
-    if (isIdle) {
-      LOG_DEBUGLN("Scheduled restart. Restarting...");
-      ESP.restart();
+    if ((counter++ % 5) == 0){
+        LOG_DEBUGLN("Tick...");
+
+        if (radio.failureDetected 
+          || radio.getChannel() != RADIO_CHANNEL
+          || radio.getDataRate() != RADIO_DATARATE
+          || radio.getPALevel() != RADIO_PALEVEL){
+              LOG_FATALLN("*******************************");
+              LOG_FATALLN("RF24 Hardware Failure detected!");
+              LOG_FATALF("Failure Detected: %s (expected NO)\n", radio.failureDetected ? "YES" : "NO");
+              LOG_FATALF("Channel: %i (expected %i)\n", radio.getChannel(), RADIO_CHANNEL);
+              LOG_FATALF("DataRate: %i (expected %i)\n", radio.getDataRate(), RADIO_DATARATE);
+              LOG_FATALF("PALevel: %i (expected %i)\n", radio.getPALevel(), RADIO_PALEVEL);
+
+              if (waterPumpRelay.getState() == false && ota.isEnabled() == false) {
+                  LOG_FATALLN("*******************************");
+                  LOG_FATALLN("Restarting ESP module...");
+                  ESP.restart();
+              }
+          }
     }
-  }
-  */
 
-  if ((counter++ % 5) == 0){
-    LOG_DEBUGLN("Tick...");
-  }
-
-  delay(200);
+    delay(200);
 }
 
 #endif
