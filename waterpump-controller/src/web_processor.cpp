@@ -3,7 +3,6 @@
 
 #include <LittleFS.h>
 
-
 #include "web_processor.h"
 
 // TODO: Rewrite to AsyncWebServer
@@ -172,6 +171,29 @@ bool WebProcessor::setupWebHandlers()
         auto page = file.readString();
         file.close();
         server->send(200, "text/html", page);
+    });
+    server->on("/list", [server](){
+        String result;
+
+        result += "LittleFS Check:";
+        result += (LittleFS.check() ? "YES" : "NO");
+        result += "\n";
+
+        auto dir = LittleFS.openDir("/");
+        int cnt = 0;
+        while (true)
+        {
+            result += "Dir: ";
+            result += dir.fileName();
+            result += "(";
+            result += dir.fileCreationTime();
+            result += ")";
+            result += "\n";
+            if (!dir.next()|| cnt++ > 10){
+                break;
+            }
+        }
+        server->send(200, "text/html", result);
     });
     return true;
 }

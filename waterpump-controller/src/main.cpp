@@ -72,6 +72,7 @@ void setup() {
     Serial.println("Initializing...");
 
     // Init FS
+//    LittleFS.begin();
     LittleFS.begin();
 
     // init radio
