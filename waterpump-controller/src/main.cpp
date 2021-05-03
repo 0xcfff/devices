@@ -26,8 +26,13 @@
 #include "web_processor.h"
 #include "dacha1_network.h"
 
-#define PIN_RADIO_CE            D3
-#define PIN_RADIO_CSN           D8
+// Original values implemented in first draft of the board
+//#define PIN_RADIO_CE            D3
+//#define PIN_RADIO_CSN           D8
+// Reversed values, accedentally implemented in the second draft of the board
+#define PIN_RADIO_CE            D8
+#define PIN_RADIO_CSN           D3
+
 #define PIN_LED_INDICATOR       D1
 #define PIN_RELAY_WATERPUMP     D2
 #define PIN_BUTTON_CONTROL      D4
@@ -140,12 +145,12 @@ void loop() {
               LOG_FATALF("DataRate: %i (expected %i)\n", radio.getDataRate(), RADIO_DATARATE);
               LOG_FATALF("PALevel: %i (expected %i)\n", radio.getPALevel(), RADIO_PALEVEL);
 
-              if (waterPumpRelay.getState() == false && ota.isEnabled() == false) {
-                  LOG_FATALLN("*******************************");
-                  LOG_FATALLN("Restarting ESP module...");
-                  ESP.restart();
-              }
-          }
+            if (waterPumpRelay.getState() == false && ota.isEnabled() == false) {
+                LOG_FATALLN("*******************************");
+                LOG_FATALLN("Restarting ESP module...");
+                ESP.restart();
+            }
+        }
     }
 
     delay(200);

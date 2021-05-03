@@ -82,6 +82,8 @@ void setup() {
 
     radio.printDetails();
 
+    htonl()
+
     dht.begin();
 
     wifiAp.begin();

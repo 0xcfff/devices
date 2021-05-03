@@ -190,7 +190,7 @@ RFChannel::ReceiveResult RFChannel::onReceive(uint8_t pipe)
     return received;
 }
 
-bool RFChannel::sendFrame(RFFrameHeader * frameHeader, void * frameData, size_t dataSize, bool broadcast)
+bool RFChannel::sendFrame(RFFrameHeader * frameHeader, const void * frameData, size_t dataSize, bool broadcast)
 {
     if (frameHeader == nullptr) {
         return false;
@@ -218,7 +218,7 @@ bool RFChannel::sendFrame(RFFrameHeader * frameHeader, void * frameData, size_t 
     return result;
 }
 
-bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, void * data, size_t dataSize, bool broadcast){
+bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, const void * data, size_t dataSize, bool broadcast){
     bool result = false;
 
     RFFrameHeader frameHeader;
@@ -289,7 +289,7 @@ bool RFChannel::sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t 
     return result;
 }
 
-bool RFChannel::sendCommand(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, uint8_t command, void * commandData, size_t dataSize, bool broadcast)
+bool RFChannel::sendCommand(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, uint8_t command, const void * commandData, size_t dataSize, bool broadcast)
 {
     bool result = false;
 

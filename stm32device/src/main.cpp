@@ -23,6 +23,7 @@ LiquidCrystal_I2C lcd(PCF8574_ADDR_A21_A11_A01, 4, 5, 6, 16, 11, 12, 13, 14, POS
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL }; 
 const uint64_t myPipe = 0xabababab01LL; 
 const char * testMessage = "test message";
+const char * confirmMessage = "DATA OK";
 
 uint8_t buff[32];
 
@@ -175,6 +176,9 @@ void loop() {
             int msgSize = channel.getContentSize(1);
             Serial.printf("Received %i bytes\n", (int) msgSize);
 
+            RFFrameHeader header;
+            channel.readHeader(1, &header);
+
             channel.receiveContent(1, buff, msgSize > 32 ? 32 : msgSize);
             if (msgSize >= sizeof(uint8_t) * 6) {
 
@@ -183,7 +187,7 @@ void loop() {
                 
                 Serial.printf("Humidity: %i.%u %%\n", (int)*values, (int)*(values+1));
                 Serial.printf("Temp: %i.%u °C\n", (int)*(values+2), (int)*(values+3));
-                Serial.printf("Heat idx: %i.%u °C\n", (int)*(values+4), (int)*(values+5));
+                Serial.printf("Heat_ch idx: %i.%u °C\n", (int)*(values+4), (int)*(values+5));
 
                 lcd.clear();
                 
@@ -197,13 +201,21 @@ void loop() {
                 
                 lastReceived = millis();
                 lastUpdated = lastReceived - 2000; // to trigger redraw
+            
+                bool sent = channel.sendData(header.toAddress, header.fromAddress, 0, confirmMessage, strlen(confirmMessage), true);
+                Serial.printf("Send reply: %i", (int)sent);
             }
 
         } else {
             channel.clearContent(1);
         }
-
     } 
+
+    if (radio.failureDetected) {
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.printf("Failure detected!");
+    }
     
     if ( millis() - lastUpdated > 1000 ) {
         lcd.setCursor(0,3);

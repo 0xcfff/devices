@@ -65,9 +65,9 @@ class RFChannel {
 
         bool handle();
 
-        bool sendFrame(RFFrameHeader * frameHeader, void * frameData, size_t dataSize, bool broadcast);
-        bool sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, void * data, size_t dataSize, bool broadcast);
-        bool sendCommand(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, uint8_t command, void * commandData, size_t dataSize, bool broadcast);
+        bool sendFrame(RFFrameHeader * frameHeader, const void * frameData, size_t dataSize, bool broadcast);
+        bool sendData(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, const void * data, size_t dataSize, bool broadcast);
+        bool sendCommand(uint64_t localAddress, uint64_t remoteAddress, uint8_t inResponseTo, uint8_t command, const void * commandData, size_t dataSize, bool broadcast);
 
         bool openRedingPipe(uint8_t pipe, uint64_t localAddress);
         bool closeReadingPipe(uint8_t pipe);        

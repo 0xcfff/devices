@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <SPI.h>
+//#include <SPI.h>
 //#include <nRF24L01.h>
 //#include <RF24.h>
 //#include <rfchannel.h>
@@ -35,14 +35,17 @@ void setup() {
 
     // init serial
     Serial.begin(115200);   
+    Serial.begin(115200);   
 
     LOG_INFOLN("Initializing...");
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
+    
 }
 
 uint8_t ledOn = false;
+uint32_t time = 0;
 
 void loop() {
 
@@ -51,7 +54,20 @@ void loop() {
     uint32_t idCode = DBGMCU->IDCODE;
     uint32_t cr = DBGMCU->CR;
 
+
+    uint32_t currMillis = millis();
+    uint32_t diff = currMillis - time;
+    time = currMillis;
+
+    printf("took: %i\n", (int)diff);
+
     digitalWrite(LED_BUILTIN, ledOn ? HIGH : LOW);
+    //digitalWrite(LED_BUILTIN, LOW);
+    //digitalWrite(LED_BUILTIN, ledOn ? HIGH : LOW);
+    printf("%x", DBGMCU->IDCODE & 0xFFF);
+    printf("here!\n");
 
     delay(300);
+    //delay(З)
 }
+
